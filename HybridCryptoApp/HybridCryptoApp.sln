@@ -5,6 +5,8 @@ VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HybridCryptoApp", "HybridCryptoApp\HybridCryptoApp.csproj", "{E1DE85AD-85C2-4133-BD58-D5CD0289DC01}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HybridCryptoApp.Tests", "HybridCryptoApp.Tests\HybridCryptoApp.Tests.csproj", "{239B012E-66D5-43DF-92A4-C4D9693BAC43}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{E1DE85AD-85C2-4133-BD58-D5CD0289DC01}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E1DE85AD-85C2-4133-BD58-D5CD0289DC01}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E1DE85AD-85C2-4133-BD58-D5CD0289DC01}.Release|Any CPU.Build.0 = Release|Any CPU
+		{239B012E-66D5-43DF-92A4-C4D9693BAC43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{239B012E-66D5-43DF-92A4-C4D9693BAC43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{239B012E-66D5-43DF-92A4-C4D9693BAC43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{239B012E-66D5-43DF-92A4-C4D9693BAC43}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
