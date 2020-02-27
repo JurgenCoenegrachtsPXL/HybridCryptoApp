@@ -10,5 +10,6 @@ namespace HybridCryptoApp.Tests
     [TestFixture]
     public class EncryptionTests
     {
+
     }
 }
