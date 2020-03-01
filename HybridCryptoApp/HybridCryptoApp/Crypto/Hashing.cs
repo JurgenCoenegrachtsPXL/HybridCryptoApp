@@ -11,7 +11,7 @@ namespace HybridCryptoApp.Crypto
     {
         //zowel files als berichten sturen
 
-        public byte[] Sha(byte[] data)
+        public static byte[] Sha(byte[] data)
         {
             using (var sha512 = SHA512.Create())
             {
