@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using HybridCryptoApp.Crypto;
 using NUnit.Framework;
 
-namespace HybridCryptoApp.Tests
+namespace HybridCryptoApp.Tests.Crypto
 {
     [TestFixture]
     public class HashingTests
