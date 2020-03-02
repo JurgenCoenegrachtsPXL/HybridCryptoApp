@@ -8,14 +8,14 @@ namespace HybridCryptoApp.Crypto
 {
     public class HybridEncryption
     {
-        public static EncryptedPacket Encrypt(byte[] data)
+        public static EncryptedPacket Encrypt(DataType type, byte[] data)
         {
             // TODO: create EAS session key
             // TODO: create EAS IV
             // TODO: encrypt data with EAS
             // TODO: generate hash of encrypted data
             // TODO: encrypt EAS session key with RSA
-            // TODO: put into new packet
+            // TODO: put all info into new packet
             throw new NotImplementedException();
         }
 

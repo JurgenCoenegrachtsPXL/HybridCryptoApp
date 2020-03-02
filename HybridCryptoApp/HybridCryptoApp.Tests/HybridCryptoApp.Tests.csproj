@@ -44,7 +44,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Crypto\AsymmetricEncryption.cs" />
+    <Compile Include="Crypto\AsymmetricEncryptionTests.cs" />
+    <Compile Include="Crypto\HybridEncryptionTests.cs" />
     <Compile Include="Crypto\SymmetricEncryptionTests.cs" />
     <Compile Include="Crypto\HashingTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

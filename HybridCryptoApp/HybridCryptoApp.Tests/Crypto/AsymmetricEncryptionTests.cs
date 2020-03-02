@@ -3,7 +3,8 @@
 namespace HybridCryptoApp.Tests.Crypto
 {
     [TestFixture]
-    public class AsymmetricEncryption
+    public class AsymmetricEncryptionTests
     {
+
     }
 }
