@@ -18,8 +18,6 @@ namespace HybridCryptoApp.Crypto
 
                 random.GetBytes(array);
 
-                MessageBox.Show(array.ToString());
-
                 return array;
             }
         }
