@@ -21,15 +21,34 @@ namespace HybridCryptoApp.Crypto
             }
         }
 
-        public static byte[] Argon2(byte[] data, byte[] salt, byte[] key)
+        public static byte[] HmacSha(byte[] data, byte[] key)
+        {
+            // TODO: use HMACSHA512 with key
+            throw new NotImplementedException();
+        }
+
+        public static byte[] HmacSha(string message, byte[] key)
         {
             throw new NotImplementedException();
         }
 
-        public static byte[] Argon2(string message, byte[] salt, byte[] key)
+        /// <summary>
+        /// Compare two hashes, execution time will always be the same
+        /// </summary>
+        /// <param name="hash1"></param>
+        /// <param name="hash2"></param>
+        /// <returns></returns>
+        public static bool CompareHashes(byte[] hash1, byte[] hash2)
         {
-            throw new NotImplementedException();
-        }
+            bool result = hash1.Length == hash2.Length;
+            int shortestHashLength = (hash1.Length < hash2.Length) ? hash1.Length : hash2.Length;
 
+            for (int i = 0; i < shortestHashLength; i++)
+            {
+                result &= hash1[i] == hash2[i];
+            }
+
+            return result;
+        }
     }
 }

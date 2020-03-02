@@ -1,26 +1,26 @@
-﻿using HybridCryptoApp.Crypto;
+﻿using System;
+using HybridCryptoApp.Crypto;
 using NUnit.Framework;
+using Random = HybridCryptoApp.Crypto.Random;
 
 namespace HybridCryptoApp.Tests.Crypto
 {
     [TestFixture]
     public class HashingTests
     {
-        private byte[] salt;
         private byte[] key;
 
         [OneTimeSetUp]
         public void Setup()
         {
-            salt = Random.GetNumbers(32);
-            key = Random.GetNumbers(16);
+            key = Random.GetNumbers(32);
         }
 
         [Test]
         public void Hashing_Can_Generate_Hash_Of_Message()
         {
             string message = "Hello World";
-            byte[] hash = Hashing.Argon2(message, salt, key);
+            byte[] hash = Hashing.HmacSha(message, key);
 
             Assert.NotNull(hash);
             CollectionAssert.IsNotEmpty(hash);
@@ -30,8 +30,8 @@ namespace HybridCryptoApp.Tests.Crypto
         public void Hashing_Can_Generate_Same_Hash_For_Same_Message()
         {
             string message = "Hello World";
-            byte[] hash1 = Hashing.Argon2(message, salt, key);
-            byte[] hash2 = Hashing.Argon2(message, salt, key);
+            byte[] hash1 = Hashing.HmacSha(message, key);
+            byte[] hash2 = Hashing.HmacSha(message, key);
 
             CollectionAssert.AreEqual(hash1, hash2);
         }
@@ -42,8 +42,8 @@ namespace HybridCryptoApp.Tests.Crypto
             string message1 = "Hello World";
             string message2 = "Goodbye World";
 
-            byte[] hash1 = Hashing.Argon2(message1, salt, key);
-            byte[] hash2 = Hashing.Argon2(message2, salt, key);
+            byte[] hash1 = Hashing.HmacSha(message1, key);
+            byte[] hash2 = Hashing.HmacSha(message2, key);
 
             CollectionAssert.AreNotEqual(hash1, hash2);
         }
@@ -52,7 +52,7 @@ namespace HybridCryptoApp.Tests.Crypto
         public void Hashing_Can_Generate_Hash_Of_Data()
         {
             byte[] data = Random.GetNumbers(256);
-            byte[] hash = Hashing.Argon2(data, salt, key);
+            byte[] hash = Hashing.HmacSha(data, key);
 
             Assert.NotNull(hash);
             CollectionAssert.IsNotEmpty(hash);
@@ -62,8 +62,8 @@ namespace HybridCryptoApp.Tests.Crypto
         public void Hashing_Can_Generate_Same_Hash_For_Same_Data()
         {
             byte[] data = Random.GetNumbers(256);
-            byte[] hash1 = Hashing.Argon2(data, salt, key);
-            byte[] hash2 = Hashing.Argon2(data, salt, key);
+            byte[] hash1 = Hashing.HmacSha(data, key);
+            byte[] hash2 = Hashing.HmacSha(data, key);
 
             CollectionAssert.AreEqual(hash1, hash2);
         }
@@ -74,10 +74,36 @@ namespace HybridCryptoApp.Tests.Crypto
             byte[] data1 = Random.GetNumbers(256);
             byte[] data2 = Random.GetNumbers(256);
 
-            byte[] hash1 = Hashing.Argon2(data1, salt, key);
-            byte[] hash2 = Hashing.Argon2(data2, salt, key);
+            byte[] hash1 = Hashing.HmacSha(data1, key);
+            byte[] hash2 = Hashing.HmacSha(data2, key);
 
             CollectionAssert.AreNotEqual(hash1, hash2);
+        }
+
+        [Test]
+        public void Hash_Compare_Can_Compare_Hashes_Of_Equal_Length_Correctly()
+        {
+            int hashLength = 128;
+
+            byte[] hash1 = Random.GetNumbers(hashLength);
+
+            byte[] hash2 = new byte[hashLength];
+            Buffer.BlockCopy(hash1, 0, hash2, 0, hash1.Length);
+
+            Assert.True(Hashing.CompareHashes(hash1, hash2));
+        }
+
+        [Test]
+        public void Hash_Compare_Can_Compare_Hashes_Of_Unequal_Length_Correctly()
+        {
+            int hashLength = 256;
+
+            byte[] hash1 = Random.GetNumbers(hashLength);
+            
+            byte[] hash2 = new byte[hashLength - 1];
+            Buffer.BlockCopy(hash1, 0, hash2, 0, hashLength - 1);
+
+            Assert.False(Hashing.CompareHashes(hash1, hash2));
         }
     }
 }
