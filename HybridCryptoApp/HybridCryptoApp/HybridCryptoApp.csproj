@@ -74,6 +74,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Crypto\AsymmetricEncryption.cs" />
+    <Compile Include="Crypto\EncryptedPacket.cs" />
     <Compile Include="Crypto\Hashing.cs" />
     <Compile Include="Crypto\Random.cs" />
     <Compile Include="Crypto\SymmetricEncryption.cs" />
