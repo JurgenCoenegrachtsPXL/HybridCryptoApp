@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security;
 using System.Security.Cryptography;
@@ -49,6 +50,17 @@ namespace HybridCryptoApp.Crypto
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Create HMAC from stream
+        /// </summary>
+        /// <param name="inputStream">Stream to create HMAC from</param>
+        /// <param name="key">Secret AES key to use</param>
+        /// <returns></returns>
+        public static Stream HmacShaStream(Stream inputStream, byte[] key)
+        {
+            throw new NotImplementedException();
         }
     }
 }

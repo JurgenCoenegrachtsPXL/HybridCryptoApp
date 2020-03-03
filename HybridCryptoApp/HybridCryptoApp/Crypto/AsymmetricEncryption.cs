@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -59,6 +60,27 @@ namespace HybridCryptoApp.Crypto
             }
 
             // TODO: use CSP
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Encrypt a stream with RSA
+        /// </summary>
+        /// <param name="inputStream">Stream of data to encrypt</param>
+        /// <param name="publicKey">Public key of the receiver</param>
+        /// <returns>Stream of encrypted data</returns>
+        public static Stream EncryptStream(Stream inputStream, byte[] publicKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Decrypt a stream with RSA
+        /// </summary>
+        /// <param name="inputStream"></param>
+        /// <returns></returns>
+        public static Stream DecryptStream(Stream inputStream)
+        {
             throw new NotImplementedException();
         }
     }
