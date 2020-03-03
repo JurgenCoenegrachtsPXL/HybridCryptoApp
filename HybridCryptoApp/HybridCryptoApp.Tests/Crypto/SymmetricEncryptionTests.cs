@@ -13,7 +13,7 @@ namespace HybridCryptoApp.Tests.Crypto
         public void SetUp()
         {
             key = Random.GetNumbers(32);
-            iv = Random.GetNumbers(32);
+            iv = Random.GetNumbers(16);
         }
 
         [Test]
@@ -33,6 +33,28 @@ namespace HybridCryptoApp.Tests.Crypto
 
             byte[] encryptedData = SymmetricEncryption.Encrypt(rawData, key, iv);
             CollectionAssert.AreNotEqual(rawData, encryptedData);
+        }
+
+        [Test]
+        public void Encryption_With_Different_Key_Returns_Different_Result()
+        {
+            byte[] rawData = Random.GetNumbers(256);
+
+            byte[] encryptedData1 = SymmetricEncryption.Encrypt(rawData, key, iv);
+            byte[] encryptedData2 = SymmetricEncryption.Encrypt(rawData, Random.GetNumbers(32), iv);
+
+            CollectionAssert.AreNotEqual(encryptedData1, encryptedData2);
+        }
+
+        [Test]
+        public void Encryption_With_Different_IV_Returns_Different_Result()
+        {
+            byte[] rawData = Random.GetNumbers(256);
+
+            byte[] encryptedData1 = SymmetricEncryption.Encrypt(rawData, key, iv);
+            byte[] encryptedData2 = SymmetricEncryption.Encrypt(rawData, key, Random.GetNumbers(16));
+
+            CollectionAssert.AreNotEqual(encryptedData1, encryptedData2);
         }
 
         [Test]
