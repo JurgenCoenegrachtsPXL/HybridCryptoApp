@@ -11,10 +11,10 @@ namespace HybridCryptoApp.Crypto
         private static string containerName = null;
 
         /// <summary>
-        /// Create a new public, private key pair in Microsoft Strong Cryptographic Provider
+        /// Create a new public, private key pair and places it in the Microsoft Strong Cryptographic Provider
         /// </summary>
         /// <param name="name">Name to reference container by</param>
-        /// <param name="keyLength">length of key in bits</param>
+        /// <param name="keyLength">Length of key in bits</param>
         /// <returns>Public key of the pair</returns>
         public static byte[] CreateNewKeyPair(string name, int keyLength)
         {
