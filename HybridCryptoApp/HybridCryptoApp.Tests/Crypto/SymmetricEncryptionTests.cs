@@ -1,4 +1,6 @@
-﻿using HybridCryptoApp.Crypto;
+﻿using System.IO;
+using System.Security.Cryptography;
+using HybridCryptoApp.Crypto;
 using NUnit.Framework;
 
 namespace HybridCryptoApp.Tests.Crypto
@@ -55,25 +57,6 @@ namespace HybridCryptoApp.Tests.Crypto
             byte[] encryptedData2 = SymmetricEncryption.Encrypt(rawData, key, Random.GetNumbers(16));
 
             CollectionAssert.AreNotEqual(encryptedData1, encryptedData2);
-        }
-
-        [Test]
-        public void Can_DecryptData()
-        {
-            byte[] rawData = Random.GetNumbers(256);
-
-            byte[] decryptedData = SymmetricEncryption.Decrypt(rawData, key, iv);
-            Assert.NotNull(decryptedData);
-            CollectionAssert.IsNotEmpty(decryptedData);
-        }
-
-        [Test]
-        public void Decrypted_Data_Differs_From_Raw_data()
-        {
-            byte[] rawData = Random.GetNumbers(256);
-
-            byte[] decryptedData = SymmetricEncryption.Encrypt(rawData, key, iv);
-            CollectionAssert.AreNotEqual(rawData, decryptedData);
         }
 
         [Test]

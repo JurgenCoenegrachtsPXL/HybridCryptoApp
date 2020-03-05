@@ -117,5 +117,15 @@ namespace HybridCryptoApp.Crypto
         {
             throw new NotImplementedException();
         }
+
+        public static string PublicKeyAsXml()
+        {
+            throw new NotImplementedException();
+        }
+
+        public static RSAParameters PublicKeyFromXml(string xml)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
