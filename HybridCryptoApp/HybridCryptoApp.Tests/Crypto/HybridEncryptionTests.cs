@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using HybridCryptoApp.Crypto;
@@ -14,7 +15,7 @@ namespace HybridCryptoApp.Tests.Crypto
     {
         private const string AsymmetricContainerName = "";
 
-        private byte[] asymmetricPublicKey;
+        private RSAParameters asymmetricPublicKey;
 
         [SetUp]
         public void SetUp()

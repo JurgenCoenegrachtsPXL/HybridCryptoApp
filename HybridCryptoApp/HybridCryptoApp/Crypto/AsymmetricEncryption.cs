@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -17,11 +18,20 @@ namespace HybridCryptoApp.Crypto
         /// <param name="name">Name to reference container by</param>
         /// <param name="keyLength">Length of key in bits</param>
         /// <returns>Public key of the pair</returns>
-        public static byte[] CreateNewKeyPair(string name, int keyLength)
+        public static RSAParameters CreateNewKeyPair(string name, int keyLength)
         {
             containerName = name;
 
-            throw new NotImplementedException();
+            CspParameters cspParameters = new CspParameters(1); // er moet 1 staan i/d constructor anders werkt het niet
+            cspParameters.KeyContainerName = name;
+            cspParameters.Flags = CspProviderFlags.UseMachineKeyStore;
+            cspParameters.ProviderName = "Microsoft Strong Cryptographic Provider";
+
+            using (var rsa = new RSACryptoServiceProvider(keyLength, cspParameters))
+            {
+                rsa.PersistKeyInCsp = true;
+                return rsa.ExportParameters(false);
+            }
         }
 
         /// <summary>
@@ -30,9 +40,18 @@ namespace HybridCryptoApp.Crypto
         /// <param name="name">Name of container to dispose</param>
         public static void DisposeKey(string name)
         {
-            containerName = null;
+            CspParameters cspParameters = new CspParameters(1); // er moet 1 staan i/d constructor anders werkt het niet
+            cspParameters.KeyContainerName = name;
+            cspParameters.Flags = CspProviderFlags.UseMachineKeyStore;
+            cspParameters.ProviderName = "Microsoft Strong Cryptographic Provider";
 
-            throw new NotImplementedException();
+            using (var rsa = new RSACryptoServiceProvider(cspParameters))
+            {
+                rsa.PersistKeyInCsp = false;
+                rsa.Clear();
+            }
+
+            containerName = null;
         }
 
         /// <summary>
@@ -41,9 +60,13 @@ namespace HybridCryptoApp.Crypto
         /// <param name="data">Plaintext data</param>
         /// <param name="publicKey">Public key of the receiver</param>
         /// <returns>Data encrypted with public key</returns>
-        public static byte[] Encrypt(byte[] data, byte[] publicKey)
+        public static byte[] Encrypt(byte[] data, RSAParameters publicKey)
         {
-            throw new NotImplementedException();
+            using (var rsa = new RSACryptoServiceProvider())
+            {
+                rsa.ImportParameters(publicKey);
+                return rsa.Encrypt(data,false);
+            }
         }
 
         /// <summary>
@@ -59,9 +82,20 @@ namespace HybridCryptoApp.Crypto
                 throw new CryptoException("No RSA private key loaded.");
             }
 
-            // TODO: use CSP
-            throw new NotImplementedException();
+            CspParameters cspParameters = new CspParameters(1); // er moet 1 staan i/d constructor anders werkt het niet
+            cspParameters.KeyContainerName = containerName;
+            cspParameters.Flags = CspProviderFlags.UseMachineKeyStore;
+            cspParameters.ProviderName = "Microsoft Strong Cryptographic Provider";
+
+            
+            using (var rsa = new RSACryptoServiceProvider(cspParameters))
+            {
+                rsa.PersistKeyInCsp = true;
+                return rsa.Decrypt(data, false);
+            }
         }
+
+        //TODO : STREAMS
 
         /// <summary>
         /// Encrypt a stream with RSA

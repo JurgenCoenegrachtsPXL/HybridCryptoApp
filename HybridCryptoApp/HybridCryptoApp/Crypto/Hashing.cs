@@ -24,13 +24,17 @@ namespace HybridCryptoApp.Crypto
 
         public static byte[] HmacSha(byte[] data, byte[] key)
         {
-            // TODO: use HMACSHA512 with key
-            throw new NotImplementedException();
+            using (var sha512 = HMACSHA512.Create())
+            {
+                sha512.Key = key;
+                return sha512.ComputeHash(data);
+            }
         }
 
         public static byte[] HmacSha(string message, byte[] key)
         {
-            throw new NotImplementedException();
+            Byte[] arrayBytes = Encoding.UTF8.GetBytes(message);
+            return HmacSha(arrayBytes, key);
         }
 
         /// <summary>
@@ -60,7 +64,15 @@ namespace HybridCryptoApp.Crypto
         /// <returns></returns>
         public static Stream HmacShaStream(Stream inputStream, byte[] key)
         {
-            throw new NotImplementedException();
+            using (var sha = new HMACSHA512())
+            {
+                sha.Key = key;
+                using (var stream = new MemoryStream())
+                {
+                    //TODO 
+                    throw new NotImplementedException();
+                }
+            }
         }
     }
 }

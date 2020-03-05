@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,7 +17,7 @@ namespace HybridCryptoApp.Crypto
         /// <param name="data">Data to be encrypted</param>
         /// <param name="publicKey">Public key of receiver</param>
         /// <returns>EncryptedPacket with all info for receiver to decrypt</returns>
-        public static EncryptedPacket Encrypt(DataType type, byte[] data, byte[] publicKey)
+        public static EncryptedPacket Encrypt(DataType type, byte[] data, RSAParameters publicKey)
         {
             // TODO: create EAS session key
             // TODO: create EAS IV

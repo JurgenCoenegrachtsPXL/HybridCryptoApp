@@ -12,12 +12,45 @@ namespace HybridCryptoApp.Crypto
     {
         public static byte[] Encrypt(byte[] data, byte[] key, byte[] iv)
         {
-            throw new NotImplementedException();
+            using (var aes = new AesCryptoServiceProvider())
+            {
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.PKCS7;
+
+                aes.Key = key;
+                aes.IV = iv; // initialization vector
+
+                using (var memoryStream = new MemoryStream())
+                {
+                    var cryptoStream = new CryptoStream(memoryStream, aes.CreateEncryptor(), CryptoStreamMode.Write);
+                    cryptoStream.Write(data, 0, data.Length);
+                    cryptoStream.FlushFinalBlock();
+
+                    return memoryStream.ToArray();
+                }
+            }
         }
 
         public static byte[] Decrypt(byte[] data, byte[] key, byte[] iv)
         {
-            throw new NotImplementedException();
+            using (var aes = new AesCryptoServiceProvider())
+            {
+                aes.Mode = CipherMode.CBC;
+                aes.Padding = PaddingMode.PKCS7;
+
+                aes.Key = key;
+                aes.IV = iv; // initialization vector
+
+                using (var memoryStream = new MemoryStream())
+                {
+                    using (var cryptoStream = new CryptoStream(memoryStream, aes.CreateDecryptor(), CryptoStreamMode.Write))
+                    {
+                        cryptoStream.Write(data, 0, data.Length);
+                    }
+
+                    return memoryStream.ToArray();
+                }
+            }
         }
 
         /// <summary>
@@ -54,9 +87,6 @@ namespace HybridCryptoApp.Crypto
             {
                 //inputStream?.Close();
             }
-            
-
-
             throw new NotImplementedException();
         }
 
