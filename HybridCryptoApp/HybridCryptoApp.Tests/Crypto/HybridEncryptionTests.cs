@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -188,6 +189,38 @@ namespace HybridCryptoApp.Tests.Crypto
             {
                 HybridEncryption.Decrypt(encryptedPacket);
             });
+        }
+
+        [Test]
+        public void Can_Encrypt_Stream_Of_Data()
+        {
+            byte[] fileBytes = Random.GetNumbers(2048);
+
+            MemoryStream inputStream = new MemoryStream(fileBytes);
+
+            EncryptedPacket encryptedPacket = HybridEncryption.EncryptFile(inputStream, asymmetricPublicKey);
+
+            Assert.NotNull(encryptedPacket);
+            CollectionAssert.AreNotEqual(fileBytes, encryptedPacket.EncryptedData);
+        }
+
+        [Test]
+        public void Can_Decrypt_Stream_Of_Data()
+        {
+            byte[] fileBytes = Random.GetNumbers(2048);
+
+            MemoryStream rawStream = new MemoryStream(fileBytes);
+
+            MemoryStream encryptedBytes = new MemoryStream();
+            HybridEncryption.EncryptFile(rawStream, encryptedBytes, asymmetricPublicKey);
+            
+            MemoryStream decryptedStream = new MemoryStream();
+            HybridEncryption.DecryptFile(encryptedBytes, decryptedStream);
+
+            byte[] decryptedBytes = decryptedStream.ToArray();
+
+            CollectionAssert.IsNotEmpty(decryptedBytes);
+            CollectionAssert.AreEqual(fileBytes, decryptedBytes);
         }
     }
 }

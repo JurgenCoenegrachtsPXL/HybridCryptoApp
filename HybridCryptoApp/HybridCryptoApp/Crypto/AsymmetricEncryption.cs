@@ -95,37 +95,39 @@ namespace HybridCryptoApp.Crypto
             }
         }
 
-        //TODO : STREAMS
-
         /// <summary>
-        /// Encrypt a stream with RSA
+        /// Get XML string representation of public key
         /// </summary>
-        /// <param name="inputStream">Stream of data to encrypt</param>
-        /// <param name="publicKey">Public key of the receiver</param>
-        /// <returns>Stream of encrypted data</returns>
-        public static Stream EncryptStream(Stream inputStream, byte[] publicKey)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Decrypt a stream with RSA
-        /// </summary>
-        /// <param name="inputStream"></param>
-        /// <returns></returns>
-        public static Stream DecryptStream(Stream inputStream)
-        {
-            throw new NotImplementedException();
-        }
-
+        /// <returns>XML string representation of public key</returns>
         public static string PublicKeyAsXml()
         {
-            throw new NotImplementedException();
+            CspParameters cspParameters = new CspParameters(1);
+            cspParameters.KeyContainerName = containerName;
+            cspParameters.Flags = CspProviderFlags.UseMachineKeyStore;
+            cspParameters.ProviderName = "Microsoft Strong Cryptographic Provider";
+
+            using (var rsa = new RSACryptoServiceProvider(cspParameters))
+            {
+                rsa.PersistKeyInCsp = true;
+                return rsa.ToXmlString(false);
+            }
         }
 
+        /// <summary>
+        /// Create public key from an XML string
+        /// </summary>
+        /// <param name="xml"></param>
+        /// <returns>Public key RSA parameters</returns>
         public static RSAParameters PublicKeyFromXml(string xml)
         {
-            throw new NotImplementedException();
+            using (var rsa = new RSACryptoServiceProvider())
+            {
+                rsa.PersistKeyInCsp = false;
+
+                rsa.FromXmlString(xml);
+
+                return rsa.ExportParameters(false);
+            }
         }
     }
 }

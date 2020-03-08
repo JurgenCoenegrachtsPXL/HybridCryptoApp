@@ -12,16 +12,12 @@ namespace HybridCryptoApp.Crypto
 {
     public class Hashing
     {
-        //zowel files als berichten sturen
-
-        public static byte[] Sha(byte[] data)
-        {
-            using (var sha512 = SHA512.Create())
-            {
-                return sha512.ComputeHash(data);
-            }
-        }
-
+        /// <summary>
+        /// Create Sha512 hash of data
+        /// </summary>
+        /// <param name="data">Data to hash</param>
+        /// <param name="key">Aes key</param>
+        /// <returns>Hash</returns>
         public static byte[] HmacSha(byte[] data, byte[] key)
         {
             using (var sha512 = HMACSHA512.Create())
@@ -31,6 +27,12 @@ namespace HybridCryptoApp.Crypto
             }
         }
 
+        /// <summary>
+        /// Create Sha512 hash of message
+        /// </summary>
+        /// <param name="message">Message to create hash of</param>
+        /// <param name="key">Aes key</param>
+        /// <returns>Hash</returns>
         public static byte[] HmacSha(string message, byte[] key)
         {
             Byte[] arrayBytes = Encoding.UTF8.GetBytes(message);
@@ -54,25 +56,6 @@ namespace HybridCryptoApp.Crypto
             }
 
             return result;
-        }
-
-        /// <summary>
-        /// Create HMAC from stream
-        /// </summary>
-        /// <param name="inputStream">Stream to create HMAC from</param>
-        /// <param name="key">Secret AES key to use</param>
-        /// <returns></returns>
-        public static Stream HmacShaStream(Stream inputStream, byte[] key)
-        {
-            using (var sha = new HMACSHA512())
-            {
-                sha.Key = key;
-                using (var stream = new MemoryStream())
-                {
-                    //TODO 
-                    throw new NotImplementedException();
-                }
-            }
         }
     }
 }

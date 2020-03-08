@@ -44,7 +44,7 @@ namespace HybridCryptoApp.Tests.Crypto
         [Test]
         public void DisposeKey_RemovesKey()
         {
-
+            Assert.Fail();
         }
 
         [Test]
@@ -64,7 +64,8 @@ namespace HybridCryptoApp.Tests.Crypto
             RSAParameters rsaParameters = AsymmetricEncryption.PublicKeyFromXml(xml);
 
             Assert.NotNull(rsaParameters);
-            Assert.Equals(publicKey, rsaParameters);
+            CollectionAssert.AreEqual(publicKey.Exponent, rsaParameters.Exponent);
+            CollectionAssert.AreEqual(publicKey.Modulus, rsaParameters.Modulus);
         }
 
         [Test]
