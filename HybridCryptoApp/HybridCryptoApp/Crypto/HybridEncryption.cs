@@ -91,7 +91,7 @@ namespace HybridCryptoApp.Crypto
         /// <param name="inputStream">Stream to read data from</param>
         /// <param name="outputStream">Stream to write encrypted packet to</param>
         /// <param name="publicKey"></param>
-        public static void EncryptFile(Stream inputStream, Stream outputStream, RSAParameters publicKey)
+        public static async void EncryptFile(Stream inputStream, Stream outputStream, RSAParameters publicKey)
         {
             byte[] aesKey = Random.GetNumbers(32);
             byte[] iv = Random.GetNumbers(16);
@@ -106,7 +106,10 @@ namespace HybridCryptoApp.Crypto
             firstData.AddRange(iv);
 
             outputStream.Write(firstData.ToArray(), 0, firstData.Count); // write datatype, encrypted aes key and aes iv
-            outputStream.Write(new byte[64], 0, 64); // reserve space for hmac
+            
+            byte[] hashPlaceholder = new byte[64];
+            hashPlaceholder[63] = 1;
+            outputStream.Write(hashPlaceholder, 0, 64); // reserve space for hmac
 
             // create streams
             using (HashStreamer hashStreamer = new HashStreamer(aesKey))
@@ -117,7 +120,14 @@ namespace HybridCryptoApp.Crypto
                     var encryptedStream = symmetricStreamer.EncryptStream(hmacStream, CryptoStreamMode.Write);
 
                     // read all data
-                    inputStream.CopyTo(encryptedStream);
+                    /*
+                    byte[] buffer = new byte[1 << (2 * 9)];
+                    while (await inputStream.ReadAsync(buffer, 0, buffer.Length) > 0)
+                    {
+                        await encryptedStream.WriteAsync(buffer, 0, buffer.Length);
+                    }
+                    */
+                    await inputStream.CopyToAsync(encryptedStream);
 
                     // write hash in front of file
                     outputStream.Seek(firstData.Count, SeekOrigin.Begin);
@@ -136,14 +146,14 @@ namespace HybridCryptoApp.Crypto
         /// </summary>
         /// <param name="inputStream">File to read encrypted packet from</param>
         /// <param name="outputStream">File to write decrypted data to</param>
-        public static bool DecryptFile(Stream inputStream, Stream outputStream)
+        public static async Task<bool> DecryptFile(Stream inputStream, Stream outputStream)
         {
             DataType dataType = (DataType)inputStream.ReadByte();
             
             // read aes key
             byte[] encryptedAesKeyLengthBuffer = new byte[2];
             inputStream.Read(encryptedAesKeyLengthBuffer, 0, 2);
-            ushort encryptedAesKeyLength = BitConverter.ToUInt16(encryptedAesKeyLengthBuffer, 2);
+            ushort encryptedAesKeyLength = BitConverter.ToUInt16(encryptedAesKeyLengthBuffer, 0);
 
             byte[] encryptedAesKey = new byte[encryptedAesKeyLength];
             inputStream.Read(encryptedAesKey, 0, encryptedAesKeyLength);
@@ -165,7 +175,7 @@ namespace HybridCryptoApp.Crypto
                     var decryptStream = symmetricStreamer.DecryptStream(hmacStream, CryptoStreamMode.Write);
 
                     // read all data
-                    inputStream.CopyTo(decryptStream);
+                    await inputStream.CopyToAsync(decryptStream);
                     inputStream.Flush();
 
                     // close file streams

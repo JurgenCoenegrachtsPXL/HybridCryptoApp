@@ -39,8 +39,8 @@ namespace HybridCryptoApp.Crypto.Streamable
         /// </summary>
         public void Dispose()
         {
-            hashStream?.Dispose();
-            hasher?.Dispose();
+            //hashStream?.Dispose();
+            //hasher?.Dispose();
         }
     }
 }

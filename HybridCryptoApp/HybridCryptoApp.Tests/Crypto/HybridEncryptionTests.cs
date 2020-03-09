@@ -205,7 +205,7 @@ namespace HybridCryptoApp.Tests.Crypto
         }
 
         [Test]
-        public void Can_Decrypt_Stream_Of_Data()
+        public async Task Can_Decrypt_Stream_Of_Data()
         {
             byte[] fileBytes = Random.GetNumbers(2048);
 
@@ -213,12 +213,16 @@ namespace HybridCryptoApp.Tests.Crypto
 
             MemoryStream encryptedBytes = new MemoryStream();
             HybridEncryption.EncryptFile(rawStream, encryptedBytes, asymmetricPublicKey);
-            
-            MemoryStream decryptedStream = new MemoryStream();
-            HybridEncryption.DecryptFile(encryptedBytes, decryptedStream);
 
+            encryptedBytes.Seek(0, SeekOrigin.Begin);
+
+            MemoryStream decryptedStream = new MemoryStream();
+            bool hashOk = await HybridEncryption.DecryptFile(encryptedBytes, decryptedStream);
+
+            decryptedStream.Seek(0, SeekOrigin.Begin);
             byte[] decryptedBytes = decryptedStream.ToArray();
 
+            Assert.True(hashOk);
             CollectionAssert.IsNotEmpty(decryptedBytes);
             CollectionAssert.AreEqual(fileBytes, decryptedBytes);
         }

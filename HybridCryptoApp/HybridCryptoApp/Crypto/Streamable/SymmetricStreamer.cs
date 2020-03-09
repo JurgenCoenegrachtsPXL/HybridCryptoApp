@@ -52,7 +52,7 @@ namespace HybridCryptoApp.Crypto.Streamable
         /// </summary>
         public void Dispose()
         {
-            outputStream?.Dispose();
+            //outputStream?.Dispose();
             aes?.Dispose();
         }
     }
