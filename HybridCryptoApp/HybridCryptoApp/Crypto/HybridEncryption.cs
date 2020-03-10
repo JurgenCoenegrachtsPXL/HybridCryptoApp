@@ -60,23 +60,22 @@ namespace HybridCryptoApp.Crypto
                 Iv = iv
             };
 
-            // create streams
+            // create streamers
             using (HashStreamer hashStreamer = new HashStreamer(aesKey))
+            using (SymmetricStreamer symmetricStreamer = new SymmetricStreamer(aesKey, iv))
             {
-                using (SymmetricStreamer symmetricStreamer = new SymmetricStreamer(aesKey, iv))
-                {
-                    var hmacStream = hashStreamer.HmacShaStream(outputStream, aesKey, CryptoStreamMode.Write);
-                    var encryptedStream = symmetricStreamer.EncryptStream(hmacStream, CryptoStreamMode.Write);
+                // create streams
+                var hmacStream = hashStreamer.HmacShaStream(outputStream, aesKey, CryptoStreamMode.Write);
+                var encryptedStream = symmetricStreamer.EncryptStream(hmacStream, CryptoStreamMode.Write);
 
-                    // read all data
-                    inputStream.CopyTo(encryptedStream);
+                // read all data
+                inputStream.CopyTo(encryptedStream);
 
-                    // get hash
-                    encryptedPacket.Hmac = hashStreamer.Hash;
+                // get hash
+                encryptedPacket.Hmac = hashStreamer.Hash;
 
-                    // close file streams
-                    inputStream.Close();
-                }
+                // close file streams
+                inputStream.Close();
             }
 
             // read encrypted data from memory stream
@@ -121,21 +120,13 @@ namespace HybridCryptoApp.Crypto
                     outputStream.Position = firstData.Count + 64;
 
                     await inputStream.CopyToAsync(encryptedStream);
-                    await inputStream.FlushAsync();
 
                     // write hash in front of file
-                    //outputStream.Seek(0, SeekOrigin.Begin);
                     outputStream.Position = 0;
                     await outputStream.WriteAsync(firstData.ToArray(), 0, firstData.Count);
-                    await outputStream.FlushAsync();
                     await outputStream.WriteAsync(hashStreamer.Hash, 0, 64);
                     await outputStream.FlushAsync();
-                    //outputStream.Flush();
-
-                    // close file streams
-                    //inputStream.Close();
-                    //outputStream.Close();
-
+                    
                     return outputStream.Length;
                 }
             }
@@ -151,7 +142,7 @@ namespace HybridCryptoApp.Crypto
             inputStream.Position = 0;
             DataType dataType = (DataType)inputStream.ReadByte();
 
-            // read aes key
+            // read and decrypt aes key
             byte[] encryptedAesKeyLengthBuffer = new byte[2];
             await inputStream.ReadAsync(encryptedAesKeyLengthBuffer, 0, 2);
             await inputStream.FlushAsync();
@@ -167,66 +158,41 @@ namespace HybridCryptoApp.Crypto
             await inputStream.ReadAsync(iv, 0, 16);
             await inputStream.FlushAsync();
 
+            // read hash
             byte[] hmac = new byte[64];
             await inputStream.ReadAsync(hmac, 0, 64);
             await inputStream.FlushAsync();
 
-            // create streams
+            // create streamers
             using (HashStreamer hashStreamer = new HashStreamer(aesKey))
             using (SymmetricStreamer symmetricStreamer = new SymmetricStreamer(aesKey, iv))
-            //using ()
             {
-                //using ()
+                long currentPos = inputStream.Position;
+
+                // create streams
+                var hmacStream = hashStreamer.HmacShaStream(new MemoryStream(), aesKey, CryptoStreamMode.Write);
+                var decryptStream = symmetricStreamer.DecryptStream(outputStream, CryptoStreamMode.Write);
+
+                // create hash
+                await inputStream.CopyToAsync(hmacStream);
+                inputStream.Position = currentPos;
+                await inputStream.FlushAsync();
+
+                // skip decrypting if the hash isn't correct
+                if (!Hashing.CompareHashes(hashStreamer.Hash, hmac))
                 {
-                    
-                    long currentPos = inputStream.Position;
-
-                    // create streams
-                    var hmacStream = hashStreamer.HmacShaStream(new MemoryStream(), aesKey, CryptoStreamMode.Write);
-                    var decryptStream = symmetricStreamer.DecryptStream(outputStream, CryptoStreamMode.Write);
-
-                    // create hash
-                    await inputStream.CopyToAsync(hmacStream);
-                    inputStream.Position = currentPos;
-                    await inputStream.FlushAsync();
-
-                    // skip decrypting if the hash isn't correct
-                    if (!Hashing.CompareHashes(hashStreamer.Hash, hmac))
-                    {
-                        return false;
-                    }
-
-                    // decrypt the actual data
-                    await inputStream.CopyToAsync(decryptStream);
-                    await inputStream.FlushAsync();
-                    
-                    // Something something, absolute bullshit
-                    inputStream.Position = inputStream.Seek(-16, SeekOrigin.End);
-                    await inputStream.CopyToAsync(decryptStream);
-
-                    return true;
-                    //return Hashing.CompareHashes(hashStreamer.Hash, hmac);
-                    
-
-                    /*
-                    //var hmacStream = hashStreamer.HmacShaStream(outputStream, aesKey, CryptoStreamMode.Write);
-                    //var decryptStream = symmetricStreamer.DecryptStream(hmacStream, CryptoStreamMode.Write);
-
-                    var decryptStream = symmetricStreamer.DecryptStream(outputStream, CryptoStreamMode.Write);
-                    var hmacStream = hashStreamer.HmacShaStream(decryptStream, aesKey, CryptoStreamMode.Write);
-
-                    // read all data
-                    await inputStream.CopyToAsync(hmacStream);
-                    await inputStream.FlushAsync();
-
-                    // check hash
-                    return await Task.Run<bool>(() =>
-                    {
-                        bool hashCheck = Hashing.CompareHashes(hashStreamer.Hash, hmac);
-                        return hashCheck;
-                    });
-                    */
+                    return false;
                 }
+
+                // decrypt the actual data
+                await inputStream.CopyToAsync(decryptStream);
+                await inputStream.FlushAsync();
+
+                // Something something, absolute bullshit
+                inputStream.Position = inputStream.Seek(-16, SeekOrigin.End);
+                await inputStream.CopyToAsync(decryptStream);
+
+                return true;
             }
         }
     }

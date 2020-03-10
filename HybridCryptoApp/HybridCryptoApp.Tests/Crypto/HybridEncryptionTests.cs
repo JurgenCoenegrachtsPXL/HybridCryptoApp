@@ -214,13 +214,34 @@ namespace HybridCryptoApp.Tests.Crypto
             MemoryStream encryptedBytes = new MemoryStream();
             long encryptedPacketLength = await HybridEncryption.EncryptFile(rawStream, encryptedBytes, asymmetricPublicKey);
 
-            //encryptedBytes.Seek(0, SeekOrigin.Begin);
             encryptedBytes.Position = 0;
 
             MemoryStream decryptedStream = new MemoryStream();
             bool hashOk = await HybridEncryption.DecryptFile(encryptedBytes, decryptedStream);
 
-            //decryptedStream.Seek(0, SeekOrigin.Begin);
+            decryptedStream.Position = 0;
+            byte[] decryptedBytes = decryptedStream.ToArray();
+
+            Assert.True(hashOk);
+            CollectionAssert.IsNotEmpty(decryptedBytes);
+            CollectionAssert.AreEqual(fileBytes, decryptedBytes);
+        }
+
+        [Test, Explicit]
+        public async Task Can_Decrypt_Large_Stream_Of_Data()
+        {
+            byte[] fileBytes = Random.GetNumbers(128_000_000);
+
+            MemoryStream rawStream = new MemoryStream(fileBytes);
+
+            MemoryStream encryptedBytes = new MemoryStream();
+            long encryptedPacketLength = await HybridEncryption.EncryptFile(rawStream, encryptedBytes, asymmetricPublicKey);
+
+            encryptedBytes.Position = 0;
+
+            MemoryStream decryptedStream = new MemoryStream();
+            bool hashOk = await HybridEncryption.DecryptFile(encryptedBytes, decryptedStream);
+
             decryptedStream.Position = 0;
             byte[] decryptedBytes = decryptedStream.ToArray();
 

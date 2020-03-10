@@ -1,17 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HybridCryptoApp.Crypto.Streamable
 {
     public class SymmetricStreamer : IDisposable
     {
-        private CryptoStream outputStream = null;
-        private AesCryptoServiceProvider aes = null;
+        private CryptoStream outputStream;
+        private AesCryptoServiceProvider aes;
 
         /// <summary>
         /// 
@@ -52,7 +48,6 @@ namespace HybridCryptoApp.Crypto.Streamable
         /// </summary>
         public void Dispose()
         {
-            //outputStream?.Dispose();
             aes?.Dispose();
         }
     }

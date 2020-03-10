@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HybridCryptoApp.Crypto.Streamable
 {
@@ -16,12 +12,11 @@ namespace HybridCryptoApp.Crypto.Streamable
         {
             get
             {
-                //hashStream?.FlushFinalBlock();
-                //hashStream = null;
                 if (hashStream != null && !hashStream.HasFlushedFinalBlock)
                 {
                     hashStream.FlushFinalBlock();
                 }
+
                 return hasher.Hash;
             }
         }
@@ -56,7 +51,7 @@ namespace HybridCryptoApp.Crypto.Streamable
                 hashStream.FlushFinalBlock();
             }
             hashStream = null;
-            //hasher?.Dispose();
+            hasher?.Dispose();
         }
     }
 }
