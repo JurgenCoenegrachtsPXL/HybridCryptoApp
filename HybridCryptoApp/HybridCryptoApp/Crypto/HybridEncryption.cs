@@ -91,7 +91,7 @@ namespace HybridCryptoApp.Crypto
         /// <param name="inputStream">Stream to read data from</param>
         /// <param name="outputStream">Stream to write encrypted packet to</param>
         /// <param name="publicKey"></param>
-        public static async void EncryptFile(Stream inputStream, Stream outputStream, RSAParameters publicKey)
+        public static async Task<long> EncryptFile(Stream inputStream, Stream outputStream, RSAParameters publicKey)
         {
             byte[] aesKey = Random.GetNumbers(32);
             byte[] iv = Random.GetNumbers(16);
@@ -105,38 +105,38 @@ namespace HybridCryptoApp.Crypto
             firstData.AddRange(encryptedSessionKey);
             firstData.AddRange(iv);
 
-            outputStream.Write(firstData.ToArray(), 0, firstData.Count); // write datatype, encrypted aes key and aes iv
-            
-            byte[] hashPlaceholder = new byte[64];
-            hashPlaceholder[63] = 1;
-            outputStream.Write(hashPlaceholder, 0, 64); // reserve space for hmac
-
+            await outputStream.WriteAsync(firstData.ToArray(), 0, firstData.Count); // write datatype, encrypted aes key and aes iv
+            await outputStream.FlushAsync();
+            await outputStream.WriteAsync(new byte[64], 0, 64); // reserve space for hmac
+            await outputStream.FlushAsync();
             // create streams
-            using (HashStreamer hashStreamer = new HashStreamer(aesKey))
+            //using (HashStreamer hashStreamer = new HashStreamer(aesKey))
             {
+                using (HashStreamer hashStreamer = new HashStreamer(aesKey))
                 using (SymmetricStreamer symmetricStreamer = new SymmetricStreamer(aesKey, iv))
                 {
                     var hmacStream = hashStreamer.HmacShaStream(outputStream, aesKey, CryptoStreamMode.Write);
                     var encryptedStream = symmetricStreamer.EncryptStream(hmacStream, CryptoStreamMode.Write);
+                    outputStream.SetLength(firstData.Count + 64);
+                    outputStream.Position = firstData.Count + 64;
 
-                    // read all data
-                    /*
-                    byte[] buffer = new byte[1 << (2 * 9)];
-                    while (await inputStream.ReadAsync(buffer, 0, buffer.Length) > 0)
-                    {
-                        await encryptedStream.WriteAsync(buffer, 0, buffer.Length);
-                    }
-                    */
                     await inputStream.CopyToAsync(encryptedStream);
+                    await inputStream.FlushAsync();
 
                     // write hash in front of file
-                    outputStream.Seek(firstData.Count, SeekOrigin.Begin);
-                    outputStream.Write(hashStreamer.Hash, 0, hashStreamer.Hash.Length);
-                    outputStream.Flush();
+                    //outputStream.Seek(0, SeekOrigin.Begin);
+                    outputStream.Position = 0;
+                    await outputStream.WriteAsync(firstData.ToArray(), 0, firstData.Count);
+                    await outputStream.FlushAsync();
+                    await outputStream.WriteAsync(hashStreamer.Hash, 0, 64);
+                    await outputStream.FlushAsync();
+                    //outputStream.Flush();
 
                     // close file streams
-                    inputStream.Close();
-                    outputStream.Close();
+                    //inputStream.Close();
+                    //outputStream.Close();
+
+                    return outputStream.Length;
                 }
             }
         }
@@ -148,42 +148,84 @@ namespace HybridCryptoApp.Crypto
         /// <param name="outputStream">File to write decrypted data to</param>
         public static async Task<bool> DecryptFile(Stream inputStream, Stream outputStream)
         {
+            inputStream.Position = 0;
             DataType dataType = (DataType)inputStream.ReadByte();
-            
+
             // read aes key
             byte[] encryptedAesKeyLengthBuffer = new byte[2];
-            inputStream.Read(encryptedAesKeyLengthBuffer, 0, 2);
+            await inputStream.ReadAsync(encryptedAesKeyLengthBuffer, 0, 2);
+            await inputStream.FlushAsync();
             ushort encryptedAesKeyLength = BitConverter.ToUInt16(encryptedAesKeyLengthBuffer, 0);
 
             byte[] encryptedAesKey = new byte[encryptedAesKeyLength];
-            inputStream.Read(encryptedAesKey, 0, encryptedAesKeyLength);
+            await inputStream.ReadAsync(encryptedAesKey, 0, encryptedAesKeyLength);
+            await inputStream.FlushAsync();
             byte[] aesKey = AsymmetricEncryption.Decrypt(encryptedAesKey);
 
             // read aes iv
             byte[] iv = new byte[16];
-            inputStream.Read(iv, 0, 16);
+            await inputStream.ReadAsync(iv, 0, 16);
+            await inputStream.FlushAsync();
 
             byte[] hmac = new byte[64];
-            inputStream.Read(hmac, 0, 64);
+            await inputStream.ReadAsync(hmac, 0, 64);
+            await inputStream.FlushAsync();
 
             // create streams
             using (HashStreamer hashStreamer = new HashStreamer(aesKey))
+            using (SymmetricStreamer symmetricStreamer = new SymmetricStreamer(aesKey, iv))
+            //using ()
             {
-                using (SymmetricStreamer symmetricStreamer = new SymmetricStreamer(aesKey, iv))
+                //using ()
                 {
-                    var hmacStream = hashStreamer.HmacShaStream(outputStream, aesKey, CryptoStreamMode.Write);
-                    var decryptStream = symmetricStreamer.DecryptStream(hmacStream, CryptoStreamMode.Write);
+                    
+                    long currentPos = inputStream.Position;
+
+                    // create streams
+                    var hmacStream = hashStreamer.HmacShaStream(new MemoryStream(), aesKey, CryptoStreamMode.Write);
+                    var decryptStream = symmetricStreamer.DecryptStream(outputStream, CryptoStreamMode.Write);
+
+                    // create hash
+                    await inputStream.CopyToAsync(hmacStream);
+                    inputStream.Position = currentPos;
+                    await inputStream.FlushAsync();
+
+                    // skip decrypting if the hash isn't correct
+                    if (!Hashing.CompareHashes(hashStreamer.Hash, hmac))
+                    {
+                        return false;
+                    }
+
+                    // decrypt the actual data
+                    await inputStream.CopyToAsync(decryptStream);
+                    await inputStream.FlushAsync();
+                    
+                    // Something something, absolute bullshit
+                    inputStream.Position = inputStream.Seek(-16, SeekOrigin.End);
+                    await inputStream.CopyToAsync(decryptStream);
+
+                    return true;
+                    //return Hashing.CompareHashes(hashStreamer.Hash, hmac);
+                    
+
+                    /*
+                    //var hmacStream = hashStreamer.HmacShaStream(outputStream, aesKey, CryptoStreamMode.Write);
+                    //var decryptStream = symmetricStreamer.DecryptStream(hmacStream, CryptoStreamMode.Write);
+
+                    var decryptStream = symmetricStreamer.DecryptStream(outputStream, CryptoStreamMode.Write);
+                    var hmacStream = hashStreamer.HmacShaStream(decryptStream, aesKey, CryptoStreamMode.Write);
 
                     // read all data
-                    await inputStream.CopyToAsync(decryptStream);
-                    inputStream.Flush();
-
-                    // close file streams
-                    inputStream.Close();
-                    outputStream.Close();
+                    await inputStream.CopyToAsync(hmacStream);
+                    await inputStream.FlushAsync();
 
                     // check hash
-                    return Hashing.CompareHashes(hashStreamer.Hash, hmac);
+                    return await Task.Run<bool>(() =>
+                    {
+                        bool hashCheck = Hashing.CompareHashes(hashStreamer.Hash, hmac);
+                        return hashCheck;
+                    });
+                    */
                 }
             }
         }

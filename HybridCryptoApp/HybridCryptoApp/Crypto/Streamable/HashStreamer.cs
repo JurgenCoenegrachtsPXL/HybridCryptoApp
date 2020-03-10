@@ -12,7 +12,19 @@ namespace HybridCryptoApp.Crypto.Streamable
     {
         private HMACSHA512 hasher;
         private CryptoStream hashStream;
-        public byte[] Hash => hasher.Hash;
+        public byte[] Hash
+        {
+            get
+            {
+                //hashStream?.FlushFinalBlock();
+                //hashStream = null;
+                if (hashStream != null && !hashStream.HasFlushedFinalBlock)
+                {
+                    hashStream.FlushFinalBlock();
+                }
+                return hasher.Hash;
+            }
+        }
 
         public HashStreamer(byte[] key)
         {
@@ -39,7 +51,11 @@ namespace HybridCryptoApp.Crypto.Streamable
         /// </summary>
         public void Dispose()
         {
-            //hashStream?.Dispose();
+            if (hashStream != null && !hashStream.HasFlushedFinalBlock)
+            {
+                hashStream.FlushFinalBlock();
+            }
+            hashStream = null;
             //hasher?.Dispose();
         }
     }

@@ -212,14 +212,16 @@ namespace HybridCryptoApp.Tests.Crypto
             MemoryStream rawStream = new MemoryStream(fileBytes);
 
             MemoryStream encryptedBytes = new MemoryStream();
-            HybridEncryption.EncryptFile(rawStream, encryptedBytes, asymmetricPublicKey);
+            long encryptedPacketLength = await HybridEncryption.EncryptFile(rawStream, encryptedBytes, asymmetricPublicKey);
 
-            encryptedBytes.Seek(0, SeekOrigin.Begin);
+            //encryptedBytes.Seek(0, SeekOrigin.Begin);
+            encryptedBytes.Position = 0;
 
             MemoryStream decryptedStream = new MemoryStream();
             bool hashOk = await HybridEncryption.DecryptFile(encryptedBytes, decryptedStream);
 
-            decryptedStream.Seek(0, SeekOrigin.Begin);
+            //decryptedStream.Seek(0, SeekOrigin.Begin);
+            decryptedStream.Position = 0;
             byte[] decryptedBytes = decryptedStream.ToArray();
 
             Assert.True(hashOk);
