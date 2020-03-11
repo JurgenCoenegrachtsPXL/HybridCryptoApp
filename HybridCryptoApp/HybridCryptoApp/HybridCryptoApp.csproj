@@ -76,9 +76,16 @@
     </ApplicationDefinition>
     <Compile Include="Crypto\Streamable\HashStreamer.cs" />
     <Compile Include="Crypto\Streamable\SymmetricStreamer.cs" />
+    <Compile Include="Windows\FileEncryptionDecryption.xaml.cs">
+      <DependentUpon>FileEncryptionDecryption.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
+    <Page Include="Windows\FileEncryptionDecryption.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Windows\MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
