@@ -22,9 +22,10 @@ namespace HybridCryptoApp.Crypto
         {
             // TODO: create EAS session key
             // TODO: create EAS IV
+			// TODO: encrypt EAS session key with RSA
             // TODO: encrypt data with EAS
             // TODO: generate hash of encrypted data
-            // TODO: encrypt EAS session key with RSA
+			// TODO: generate signature using hash
             // TODO: put all info into new EncryptedPacket
             throw new NotImplementedException();
         }
@@ -36,6 +37,11 @@ namespace HybridCryptoApp.Crypto
         /// <returns>Decrypted data of packet</returns>
         public static byte[] Decrypt(EncryptedPacket encryptedPacket)
         {
+			// TODO: decrypt AES session key with private key
+			// TODO: decrypt data with AES key and IV
+			// TODO: hash decrypted data
+			// TODO: check 
+			// TODO: check signature
             throw new NotImplementedException();
         }
 
