@@ -27,7 +27,7 @@ namespace HybridCryptoApp.Tests.Crypto
         [TearDown]
         public void TearDown()
         {
-            AsymmetricEncryption.DisposeKey(AsymmetricContainerName);
+            AsymmetricEncryption.DeleteKey(AsymmetricContainerName);
         }
 
         [Test]
