@@ -20,29 +20,73 @@ namespace HybridCryptoApp.Crypto
         /// <returns>EncryptedPacket with all info for receiver to decrypt</returns>
         public static EncryptedPacket Encrypt(DataType type, byte[] data, RSAParameters publicKey)
         {
-            // TODO: create EAS session key
-            // TODO: create EAS IV
-			// TODO: encrypt EAS session key with RSA
-            // TODO: encrypt data with EAS
-            // TODO: generate hash of encrypted data
-			// TODO: generate signature using hash
-            // TODO: put all info into new EncryptedPacket
-            throw new NotImplementedException();
+            // create AES session key
+            byte[] sessionKey = Random.GetNumbers(32);
+
+            // create AES IV
+            byte[] iv = Random.GetNumbers(16);
+
+            // encrypt AES session key with RSA
+            byte[] encryptedSessionKey = AsymmetricEncryption.Encrypt(sessionKey, publicKey);
+
+            // encrypt data with AES
+            byte[] encryptedData = SymmetricEncryption.Encrypt(data, sessionKey, iv);
+
+            // generate hash of encrypted data with session key
+            byte[] hash = Hashing.HmacSha(encryptedData, sessionKey);
+
+            // generate signature using hash
+            byte[] signature = AsymmetricEncryption.Sign(hash);
+
+            // put all info into new EncryptedPacket
+            var encryptedPacket = new EncryptedPacket
+            {
+                EncryptedSessionKey = sessionKey,
+                Iv = iv,
+                Hmac = hash,
+                Signature = signature,
+                EncryptedData = encryptedData
+            };
+
+            return encryptedPacket;
         }
 
         /// <summary>
         /// Decrypt an encrypted packet of data
         /// </summary>
-        /// <param name="encryptedPacket"></param>
+        /// <param name="encryptedPacket">Packet containing data</param>
+        /// <param name="publicKey">Public RSA key of sender</param>
         /// <returns>Decrypted data of packet</returns>
-        public static byte[] Decrypt(EncryptedPacket encryptedPacket)
+        public static byte[] Decrypt(EncryptedPacket encryptedPacket, RSAParameters publicKey)
         {
-			// TODO: decrypt AES session key with private key
-			// TODO: decrypt data with AES key and IV
-			// TODO: hash decrypted data
-			// TODO: check 
-			// TODO: check signature
-            throw new NotImplementedException();
+			// decrypt AES session key with private RSA key
+            byte[] sessionKey = AsymmetricEncryption.Decrypt(encryptedPacket.EncryptedSessionKey);
+
+            // rehash data with session key
+            byte[] hashedData = Hashing.HmacSha(encryptedPacket.EncryptedData, sessionKey);
+
+            // check hash
+            bool checkedHash = Hashing.CompareHashes(hashedData, encryptedPacket.Hmac);
+            
+            if (!checkedHash)
+            {
+                throw new CryptoException("Hash validation failed, data may have been modified!");
+            }
+
+            // check signature
+            bool checkedSignature =
+                AsymmetricEncryption.CheckSignature(encryptedPacket.Signature, publicKey, encryptedPacket.Hmac);
+
+            if (!checkedSignature)
+            {
+                throw new CryptoException("Signature check failed, packet may have come from a different sender.");
+            }
+
+            // decrypt data with AES key and IV
+            byte[] decryptedData =
+                SymmetricEncryption.Decrypt(encryptedPacket.EncryptedData, sessionKey, encryptedPacket.Iv);
+
+            return decryptedData;
         }
 
         /// <summary>

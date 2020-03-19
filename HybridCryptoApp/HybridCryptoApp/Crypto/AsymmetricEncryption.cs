@@ -76,18 +76,8 @@ namespace HybridCryptoApp.Crypto
         /// <returns>Plaintext data</returns>
         public static byte[] Decrypt(byte[] data)
         {
-            // container needs to be specified
-            if (containerName == null)
-            {
-                throw new CryptoException("No RSA private key loaded.");
-            }
+            CspParameters cspParameters = GetCSPParameters();
 
-            CspParameters cspParameters = new CspParameters(1); // er moet 1 staan i/d constructor anders werkt het niet
-            cspParameters.KeyContainerName = containerName;
-            cspParameters.Flags = CspProviderFlags.UseMachineKeyStore;
-            cspParameters.ProviderName = "Microsoft Strong Cryptographic Provider";
-
-            
             using (var rsa = new RSACryptoServiceProvider(cspParameters))
             {
                 rsa.PersistKeyInCsp = true;
@@ -128,6 +118,60 @@ namespace HybridCryptoApp.Crypto
 
                 return rsa.ExportParameters(false);
             }
+        }
+
+        /// <summary>
+        /// Sign data with private RSA key
+        /// </summary>
+        /// <param name="data">Data to sign</param>
+        /// <returns>Signature</returns>
+        public static byte[] Sign(byte[] data)
+        {
+            CspParameters cspParameters = GetCSPParameters();
+            
+            using (var rsa = new RSACryptoServiceProvider(cspParameters))
+            {
+                rsa.PersistKeyInCsp = true;
+
+                var rsaFormatter = new RSAPKCS1SignatureFormatter(rsa);
+                rsaFormatter.SetHashAlgorithm("SHA512");
+                return rsaFormatter.CreateSignature(data);
+            }
+        }
+
+        /// <summary>
+        /// Check given signature
+        /// </summary>
+        /// <param name="signature">Signature</param>
+        /// <param name="publicKey">Public key of user who created signature</param>
+        /// <param name="expectedResult">Expected answer of signature</param>
+        /// <returns>True or false</returns>
+        public static bool CheckSignature(byte[] signature, RSAParameters publicKey, byte[] expectedResult)
+        {
+            using (var rsa = new RSACryptoServiceProvider())
+            {
+                rsa.ImportParameters(publicKey);
+
+                var rsaFormatter = new RSAPKCS1SignatureDeformatter(rsa);
+                rsaFormatter.SetHashAlgorithm("SHA512");
+                return rsaFormatter.VerifySignature(expectedResult, signature);
+            }
+        }
+
+        private static CspParameters GetCSPParameters()
+        {
+            // container needs to be specified
+            if (containerName == null)
+            {
+                throw new CryptoException("No RSA private key loaded.");
+            }
+
+            CspParameters cspParameters = new CspParameters(1); // er moet 1 staan i/d constructor anders werkt het niet
+            cspParameters.KeyContainerName = containerName;
+            cspParameters.Flags = CspProviderFlags.UseMachineKeyStore;
+            cspParameters.ProviderName = "Microsoft Strong Cryptographic Provider";
+
+            return cspParameters;
         }
     }
 }

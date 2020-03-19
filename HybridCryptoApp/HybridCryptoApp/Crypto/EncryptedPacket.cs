@@ -19,7 +19,7 @@ namespace HybridCryptoApp.Crypto
         public byte[] EncryptedSessionKey { get; set; }
 
         /// <summary>
-        /// Initialization Vector for EAS (adds entropy to process)
+        /// Initialization Vector for AES (adds entropy to process)
         /// </summary>
         public byte[] Iv { get; set; }
 
@@ -27,6 +27,11 @@ namespace HybridCryptoApp.Crypto
         /// Hash to verify sender and data integrity
         /// </summary>
         public byte[] Hmac { get; set; }
+
+        /// <summary>
+        /// Signature of sender
+        /// </summary>
+        public byte[] Signature { get; set; }
 
         /// <summary>
         /// Actual data encrypted with EAS
