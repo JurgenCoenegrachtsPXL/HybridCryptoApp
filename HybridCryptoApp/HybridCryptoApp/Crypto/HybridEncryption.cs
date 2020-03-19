@@ -41,7 +41,8 @@ namespace HybridCryptoApp.Crypto
             // put all info into new EncryptedPacket
             var encryptedPacket = new EncryptedPacket
             {
-                EncryptedSessionKey = sessionKey,
+                DataType = type,
+                EncryptedSessionKey = encryptedSessionKey,
                 Iv = iv,
                 Hmac = hash,
                 Signature = signature,
@@ -74,8 +75,7 @@ namespace HybridCryptoApp.Crypto
             }
 
             // check signature
-            bool checkedSignature =
-                AsymmetricEncryption.CheckSignature(encryptedPacket.Signature, publicKey, encryptedPacket.Hmac);
+            bool checkedSignature = AsymmetricEncryption.CheckSignature(encryptedPacket.Signature, publicKey,encryptedPacket.Hmac);
 
             if (!checkedSignature)
             {

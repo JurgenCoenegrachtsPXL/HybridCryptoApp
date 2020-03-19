@@ -20,7 +20,9 @@ namespace HybridCryptoApp.Crypto
         /// <returns>Hash</returns>
         public static byte[] HmacSha(byte[] data, byte[] key)
         {
-            using (var sha512 = HMACSHA512.Create())
+            
+
+            using (var sha512 = HMACSHA512.Create("HMACSHA512"))
             {
                 sha512.Key = key;
                 return sha512.ComputeHash(data);

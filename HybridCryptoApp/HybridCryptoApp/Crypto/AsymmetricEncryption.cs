@@ -1,55 +1,60 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Security.Cryptography;
 
 namespace HybridCryptoApp.Crypto
 {
     public static class AsymmetricEncryption
     {
         private static string containerName = null;
+        private static int keyLength = 4096;
 
         /// <summary>
         /// Create a new public, private key pair and places it in the Microsoft Strong Cryptographic Provider
         /// </summary>
         /// <param name="name">Name to reference container by</param>
-        /// <param name="keyLength">Length of key in bits</param>
+        /// <param name="length">Length of key in bits</param>
         /// <returns>Public key of the pair</returns>
-        public static RSAParameters CreateNewKeyPair(string name, int keyLength)
+        public static RSAParameters CreateNewKeyPair(string name, int length)
         {
             containerName = name;
+            keyLength = length;
 
             CspParameters cspParameters = new CspParameters(1); // er moet 1 staan i/d constructor anders werkt het niet
             cspParameters.KeyContainerName = name;
-            cspParameters.Flags = CspProviderFlags.UseMachineKeyStore;
-            cspParameters.ProviderName = "Microsoft Strong Cryptographic Provider";
 
-            using (var rsa = new RSACryptoServiceProvider(keyLength, cspParameters))
-            {
-                rsa.PersistKeyInCsp = true;
-                return rsa.ExportParameters(false);
-            }
+            var rsa = new RSACryptoServiceProvider(cspParameters);
+            rsa.PersistKeyInCsp = true;
+            return rsa.ExportParameters(false);
+        }
+
+        /// <summary>
+        /// Select an existing key pair to be the active key pair
+        /// </summary>
+        /// <param name="name">Name of the key pair</param>
+        /// <param name="length">Length of the key pair</param>
+        /// <returns>Public key of the pair</returns>
+        public static RSAParameters SelectKeyPair(string name, int length)
+        {
+            containerName = name;
+            keyLength = length;
+
+            CspParameters cspParameters = new CspParameters() {KeyContainerName = name};
+
+            var rsa = new RSACryptoServiceProvider(cspParameters);
+            rsa.PersistKeyInCsp = true;
+            return rsa.ExportParameters(false);
         }
 
         /// <summary>
         /// Delete private key from Microsoft Strong Cryptographic Provider
         /// </summary>
         /// <param name="name">Name of container to dispose</param>
-        public static void DisposeKey(string name)
+        public static void DeleteKey(string name)
         {
-            CspParameters cspParameters = new CspParameters(1); // er moet 1 staan i/d constructor anders werkt het niet
-            cspParameters.KeyContainerName = name;
-            cspParameters.Flags = CspProviderFlags.UseMachineKeyStore;
-            cspParameters.ProviderName = "Microsoft Strong Cryptographic Provider";
+            CspParameters cspParameters = new CspParameters {KeyContainerName = name};
 
-            using (var rsa = new RSACryptoServiceProvider(cspParameters))
-            {
-                rsa.PersistKeyInCsp = false;
-                rsa.Clear();
-            }
+            var rsa = new RSACryptoServiceProvider(cspParameters);
+            rsa.PersistKeyInCsp = false;
+            rsa.Clear();
 
             containerName = null;
         }
@@ -62,11 +67,15 @@ namespace HybridCryptoApp.Crypto
         /// <returns>Data encrypted with public key</returns>
         public static byte[] Encrypt(byte[] data, RSAParameters publicKey)
         {
-            using (var rsa = new RSACryptoServiceProvider())
+            byte[] encryptedBytes;
+            using (var rsa = new RSACryptoServiceProvider(keyLength))
             {
+                rsa.PersistKeyInCsp = false;
                 rsa.ImportParameters(publicKey);
-                return rsa.Encrypt(data,false);
+                encryptedBytes = rsa.Encrypt(data, RSAEncryptionPadding.Pkcs1);
             }
+
+            return encryptedBytes;
         }
 
         /// <summary>
@@ -76,13 +85,16 @@ namespace HybridCryptoApp.Crypto
         /// <returns>Plaintext data</returns>
         public static byte[] Decrypt(byte[] data)
         {
-            CspParameters cspParameters = GetCSPParameters();
+            CspParameters cspParameters = new CspParameters() { KeyContainerName = containerName };
 
-            using (var rsa = new RSACryptoServiceProvider(cspParameters))
+            byte[] decryptedBytes;
+            using (var rsa = new RSACryptoServiceProvider(keyLength, cspParameters))
             {
-                rsa.PersistKeyInCsp = true;
-                return rsa.Decrypt(data, false);
+                RSAParameters rsaparams = rsa.ExportParameters(true);
+                decryptedBytes = rsa.Decrypt(data, RSAEncryptionPadding.Pkcs1);
             }
+
+            return decryptedBytes;
         }
 
         /// <summary>
@@ -96,7 +108,7 @@ namespace HybridCryptoApp.Crypto
             cspParameters.Flags = CspProviderFlags.UseMachineKeyStore;
             cspParameters.ProviderName = "Microsoft Strong Cryptographic Provider";
 
-            using (var rsa = new RSACryptoServiceProvider(cspParameters))
+            using (var rsa = new RSACryptoServiceProvider(keyLength, cspParameters))
             {
                 rsa.PersistKeyInCsp = true;
                 return rsa.ToXmlString(false);
@@ -121,22 +133,26 @@ namespace HybridCryptoApp.Crypto
         }
 
         /// <summary>
-        /// Sign data with private RSA key
+        /// Sign hash with private RSA key
         /// </summary>
-        /// <param name="data">Data to sign</param>
+        /// <param name="hash">Data to sign</param>
         /// <returns>Signature</returns>
-        public static byte[] Sign(byte[] data)
+        public static byte[] Sign(byte[] hash)
         {
-            CspParameters cspParameters = GetCSPParameters();
-            
-            using (var rsa = new RSACryptoServiceProvider(cspParameters))
+            CspParameters cspParameters = new CspParameters(){KeyContainerName = containerName};
+            byte[] signBytes;
+
+            using (var rsa = new RSACryptoServiceProvider(keyLength, cspParameters))
             {
                 rsa.PersistKeyInCsp = true;
-
+                
                 var rsaFormatter = new RSAPKCS1SignatureFormatter(rsa);
                 rsaFormatter.SetHashAlgorithm("SHA512");
-                return rsaFormatter.CreateSignature(data);
+
+                signBytes = rsaFormatter.CreateSignature(hash);
             }
+
+            return signBytes;
         }
 
         /// <summary>
@@ -150,14 +166,20 @@ namespace HybridCryptoApp.Crypto
         {
             using (var rsa = new RSACryptoServiceProvider())
             {
+                rsa.PersistKeyInCsp = false;
                 rsa.ImportParameters(publicKey);
+                
+                var rsaDeformatter = new RSAPKCS1SignatureDeformatter(rsa);
+                rsaDeformatter.SetHashAlgorithm("SHA512");
 
-                var rsaFormatter = new RSAPKCS1SignatureDeformatter(rsa);
-                rsaFormatter.SetHashAlgorithm("SHA512");
-                return rsaFormatter.VerifySignature(expectedResult, signature);
+                return rsaDeformatter.VerifySignature(expectedResult, signature);
             }
         }
 
+        /// <summary>
+        /// Create CSP parameters to load current asymmetric key
+        /// </summary>
+        /// <returns></returns>
         private static CspParameters GetCSPParameters()
         {
             // container needs to be specified
@@ -166,12 +188,10 @@ namespace HybridCryptoApp.Crypto
                 throw new CryptoException("No RSA private key loaded.");
             }
 
-            CspParameters cspParameters = new CspParameters(1); // er moet 1 staan i/d constructor anders werkt het niet
-            cspParameters.KeyContainerName = containerName;
-            cspParameters.Flags = CspProviderFlags.UseMachineKeyStore;
-            cspParameters.ProviderName = "Microsoft Strong Cryptographic Provider";
-
-            return cspParameters;
+            return new CspParameters()
+            {
+                KeyContainerName = containerName,
+            };
         }
     }
 }

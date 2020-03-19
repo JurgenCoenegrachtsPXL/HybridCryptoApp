@@ -14,7 +14,7 @@ namespace HybridCryptoApp.Tests.Crypto
     [TestFixture]
     public class HybridEncryptionTests
     {
-        private const string AsymmetricContainerName = "";
+        private const string AsymmetricContainerName = "testContainerName";
 
         private RSAParameters asymmetricPublicKey;
 
@@ -116,7 +116,7 @@ namespace HybridCryptoApp.Tests.Crypto
             byte[] messageBytes = Encoding.UTF8.GetBytes(inputString);
             EncryptedPacket encryptedPacket = HybridEncryption.Encrypt(DataType.Message, messageBytes, asymmetricPublicKey);
 
-            byte[] decryptedBytes = HybridEncryption.Decrypt(encryptedPacket);
+            byte[] decryptedBytes = HybridEncryption.Decrypt(encryptedPacket, asymmetricPublicKey);
             string decryptedMessage = Encoding.UTF8.GetString(decryptedBytes);
 
             Assert.AreEqual(inputString, decryptedMessage);
@@ -128,7 +128,7 @@ namespace HybridCryptoApp.Tests.Crypto
             byte[] fileBytes = Random.GetNumbers(2048);
             EncryptedPacket encryptedPacket = HybridEncryption.Encrypt(DataType.File, fileBytes, asymmetricPublicKey);
             
-            byte[] decryptedBytes = HybridEncryption.Decrypt(encryptedPacket);
+            byte[] decryptedBytes = HybridEncryption.Decrypt(encryptedPacket, asymmetricPublicKey);
 
             CollectionAssert.AreEqual(fileBytes, decryptedBytes);
         }
@@ -187,7 +187,7 @@ namespace HybridCryptoApp.Tests.Crypto
 
             Assert.Throws(typeof(CryptoException), () =>
             {
-                HybridEncryption.Decrypt(encryptedPacket);
+                HybridEncryption.Decrypt(encryptedPacket, asymmetricPublicKey);
             });
         }
 
