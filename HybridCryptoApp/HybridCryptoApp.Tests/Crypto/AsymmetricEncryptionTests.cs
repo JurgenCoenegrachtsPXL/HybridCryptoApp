@@ -7,7 +7,7 @@ namespace HybridCryptoApp.Tests.Crypto
     [TestFixture]
     public class AsymmetricEncryptionTests
     {
-        private string testContainerName = "testContainer";
+        private string testContainerName = "newTestContainer";
         private RSAParameters publicKey;
 
         [SetUp]
@@ -44,7 +44,7 @@ namespace HybridCryptoApp.Tests.Crypto
         [Test]
         public void DisposeKey_RemovesKey()
         {
-            Assert.Fail();
+            Assert.Fail("Not implemented");
         }
 
         [Test]
