@@ -234,7 +234,14 @@ namespace HybridCryptoApp.Windows
                 MemoryStream inputStream = new MemoryStream();
                 byte[] messageBytes = Encoding.UTF8.GetBytes(InputMessageBox.Text);
                 inputStream.Write(messageBytes, 0, messageBytes.Length);
-                inputStream.Position = 0;
+
+                // message requires a minimum length, pad it with 32 0x00 bytes
+                if (inputStream.Length < 32)
+                {
+                    inputStream.Write(new byte[32], 0, 32);
+                }
+
+                inputStream.Position = inputStream.Seek(0, SeekOrigin.Begin);
                 FileStream outputStream = null;
 
                 try
