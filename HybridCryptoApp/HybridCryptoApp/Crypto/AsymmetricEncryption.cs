@@ -8,6 +8,22 @@ namespace HybridCryptoApp.Crypto
         private static int keyLength = 4096;
 
         /// <summary>
+        /// Public key of currently loaded RSA pair
+        /// </summary>
+        public static RSAParameters PublicKey {
+            get
+            {
+                CspParameters cspParameters = new CspParameters { KeyContainerName = containerName };
+                
+                using (var rsa = new RSACryptoServiceProvider(keyLength, cspParameters))
+                {
+                    rsa.PersistKeyInCsp = true;
+                    return rsa.ExportParameters(false);
+                }
+            }
+        }
+
+        /// <summary>
         /// Create a new public, private key pair and places it in the Microsoft Strong Cryptographic Provider
         /// </summary>
         /// <param name="name">Name to reference container by</param>

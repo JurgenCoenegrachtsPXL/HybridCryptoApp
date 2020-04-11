@@ -57,8 +57,9 @@ namespace HybridCryptoApp.Crypto
         /// </summary>
         /// <param name="encryptedPacket">Packet containing data</param>
         /// <param name="publicKey">Public RSA key of sender</param>
+        /// <param name="skipSignature"></param>
         /// <returns>Decrypted data of packet</returns>
-        public static byte[] Decrypt(EncryptedPacket encryptedPacket, RSAParameters publicKey)
+        public static byte[] Decrypt(EncryptedPacket encryptedPacket, RSAParameters publicKey, bool skipSignature = false)
         {
 			// decrypt AES session key with private RSA key
             byte[] sessionKey = AsymmetricEncryption.Decrypt(encryptedPacket.EncryptedSessionKey);
@@ -74,14 +75,17 @@ namespace HybridCryptoApp.Crypto
                 throw new CryptoException("Hash validation failed, data may have been modified!");
             }
 
-            // check signature
-            bool checkedSignature = AsymmetricEncryption.CheckSignature(encryptedPacket.Signature, publicKey,encryptedPacket.Hmac);
-
-            if (!checkedSignature)
+            // check signature if required
+            if (!skipSignature)
             {
-                throw new CryptoException("Signature check failed, packet may have come from a different sender.");
-            }
+                bool checkedSignature = AsymmetricEncryption.CheckSignature(encryptedPacket.Signature, publicKey, encryptedPacket.Hmac);
 
+                if (!checkedSignature)
+                {
+                    throw new CryptoException("Signature check failed, packet may have come from a different sender.");
+                }
+            }
+            
             // decrypt data with AES key and IV
             byte[] decryptedData =
                 SymmetricEncryption.Decrypt(encryptedPacket.EncryptedData, sessionKey, encryptedPacket.Iv);
