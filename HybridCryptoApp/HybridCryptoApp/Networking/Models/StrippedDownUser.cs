@@ -1,7 +1,30 @@
-﻿namespace HybridCryptoApp.Crypto
+﻿using System;
+using HybridCryptoApp.Crypto;
+
+namespace HybridCryptoApp.Networking.Models
 {
-    public class EncryptedPacket
+    public class StrippedDownUser
     {
+        /// <summary>
+        /// Primary key in database of backend
+        /// </summary>
+        public int Id { get; set; }
+
+        /// <summary>
+        /// Sender of the packet
+        /// </summary>
+        public StrippedDownUser Sender { get; set; }
+
+        /// <summary>
+        /// Receiver of the packet
+        /// </summary>
+        public StrippedDownUser Receiver { get; set; }
+
+        /// <summary>
+        /// When packet was sent
+        /// </summary>
+        public DateTime SendDateTime { get; set; }
+
         /// <summary>
         /// Type of data in packet
         /// </summary>
@@ -31,12 +54,5 @@
         /// Actual data encrypted with EAS
         /// </summary>
         public byte[] EncryptedData { get; set; }
-    }
-
-    public enum DataType : byte
-    {
-        Message,
-        File,
-        Steganography
     }
 }

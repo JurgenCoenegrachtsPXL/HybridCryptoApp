@@ -47,6 +47,9 @@
     <Reference Include="Konscious.Security.Cryptography.Blake2, Version=1.0.3.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Konscious.Security.Cryptography.Blake2.1.0.3\lib\net451\Konscious.Security.Cryptography.Blake2.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework, Version=3.12.0.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.3.12.0\lib\net45\nunit.framework.dll</HintPath>
     </Reference>
@@ -76,13 +79,32 @@
     </ApplicationDefinition>
     <Compile Include="Crypto\Streamable\HashStreamer.cs" />
     <Compile Include="Crypto\Streamable\SymmetricStreamer.cs" />
+    <Compile Include="Networking\Client.cs" />
+    <Compile Include="Networking\ClientException.cs" />
+    <Compile Include="Networking\ContactPerson.cs" />
+    <Compile Include="Networking\Models\LoginModel.cs" />
+    <Compile Include="Networking\Models\NewEncryptedPacketModel.cs" />
+    <Compile Include="Networking\Models\RegistrationModel.cs" />
+    <Compile Include="Networking\Models\StrippedDownEncryptedPacket.cs" />
+    <Compile Include="Networking\Models\StrippedDownUser.cs" />
+    <Compile Include="Networking\Models\UserContactModel.cs" />
     <Compile Include="Windows\FileEncryptionDecryption.xaml.cs">
       <DependentUpon>FileEncryptionDecryption.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\LoginWindow.xaml.cs">
+      <DependentUpon>LoginWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\RegistrationWindow.xaml.cs">
+      <DependentUpon>RegistrationWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="Windows\SettingsWindow.xaml.cs">
       <DependentUpon>SettingsWindow.xaml</DependentUpon>
     </Compile>
     <Page Include="Windows\FileEncryptionDecryption.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\LoginWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -105,6 +127,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Windows\RegistrationWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Windows\SettingsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -143,6 +169,7 @@
   <ItemGroup>
     <Resource Include="Images\redx.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
