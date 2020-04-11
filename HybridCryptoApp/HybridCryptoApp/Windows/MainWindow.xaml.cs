@@ -41,5 +41,11 @@ namespace HybridCryptoApp.Windows
             OfflineWindow offlineWindow = new OfflineWindow();
             offlineWindow.ShowDialog();
         }
+
+        private void ChatButton_Click(object sender, RoutedEventArgs e)
+        {
+            ChatWindow chatWindow = new ChatWindow();
+            chatWindow.ShowDialog();
+        }
     }
 }

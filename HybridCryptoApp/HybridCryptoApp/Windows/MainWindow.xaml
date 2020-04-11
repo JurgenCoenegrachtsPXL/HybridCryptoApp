@@ -9,6 +9,7 @@
     <StackPanel>
         <Button Name="LoginButton" Width="70" Content="Login" Click="LoginButton_Click"></Button>
         <Button Name="RegisterButton" Width="70" Content="Register" Click="RegisterButton_Click"></Button>
+        <Button Name="ChatButton" Width="70" Content="Chat" Click="ChatButton_Click"></Button>
         <Button Name="OfflineButton" Width="70" Content="Offline" Click="OfflineButton_Click"></Button>
     </StackPanel>
 </Window>
