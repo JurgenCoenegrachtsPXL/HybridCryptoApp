@@ -6,49 +6,9 @@
         xmlns:local="clr-namespace:HybridCryptoApp.Windows"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <DockPanel>
-        <Menu DockPanel.Dock="Top">
-            <MenuItem Header="_File">
-                <MenuItem Name="EncryptFileButton" Header="_Encrypt" Click="EncryptButton_Click" />
-                <MenuItem Name="DecryptFileButton" Header="_Decrypt" Click="DecryptButton_Click" />
-            </MenuItem>
-            
-            <MenuItem Header="_Message">
-                <MenuItem Name="EncryptMessageButton" Header="_Encrypt" Click="EncryptMessageButton_Click" />
-                <MenuItem Name="DecryptMessageButton" Header="_Decrypt" Click="DecryptMessageButton_Click" />
-            </MenuItem>
-            
-            <MenuItem Header="Create">
-                <MenuItem Header="RSA Key" Name="CreateRSAKey" Click="CreateRSAKey_Click"/>
-            </MenuItem>
-            <MenuItem Header="Export">
-                <MenuItem Name="ExportPublicRSAKey" Header="Public RSA Key" Click="ExportPublicRSAKey_Click"/>
-            </MenuItem>
-            <MenuItem Header="Settings" Click="SettingsButton_Click"/>
-        </Menu>
-
-        <StackPanel>
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Margin="5">Message</TextBlock>
-                <TextBox Name="InputMessageBox" Width="250" Margin="5"></TextBox>
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Margin="5">Public RSA key (XML)</TextBlock>
-                <TextBox Margin="5" Name="PublicRSAKeyReceiver" Width="250"></TextBox>
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Margin="5">Private RSA key container name</TextBlock>
-                <TextBox Margin="5" Name="PrivateRSAContainerName" Width="250"></TextBox>
-                <Button Margin="5" Click="LoadPrivateKey">Update</Button>
-            </StackPanel>
-
-            <Image Margin="10" HorizontalAlignment="Left" Name="StatusImage" Width="100" Height="100" />
-
-            <TextBlock Name="ErrorTextBlock" Foreground="Red" Text=""></TextBlock>
-        </StackPanel>
-
-        
-    </DockPanel>
+    <StackPanel>
+        <Button Name="LoginButton" Width="70" Content="Login" Click="LoginButton_Click"></Button>
+        <Button Name="RegisterButton" Width="70" Content="Register" Click="RegisterButton_Click"></Button>
+        <Button Name="OfflineButton" Width="70" Content="Offline" Click="OfflineButton_Click"></Button>
+    </StackPanel>
 </Window>
