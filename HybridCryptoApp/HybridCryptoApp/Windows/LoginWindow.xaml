@@ -1,0 +1,60 @@
+﻿<Window x:Class="HybridCryptoApp.Windows.LoginWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:HybridCryptoApp.Windows"
+        mc:Ignorable="d"
+Title="LoginScreen" Height="450" Width="800" Background="#637880">
+    <Window.Resources>
+        <Style x:Key="LabelsStyle" TargetType="Label">
+            <Setter Property="Foreground" Value="WhiteSmoke"></Setter>
+            <Setter Property="FontSize" Value="18"></Setter>
+        </Style>
+
+        <Style x:Key="TextBoxesStyle" TargetType="TextBox">
+            <Setter Property="Foreground" Value="WhiteSmoke"></Setter>
+            <Setter Property="Background" Value="#88BACC"></Setter>
+            <Setter Property="FontSize" Value="15"></Setter>
+            <Setter Property="Height" Value="30"></Setter>
+        </Style>
+
+        <Style x:Key="ButtonStyle" TargetType="Button">
+            <Setter Property="Margin" Value="60 15"></Setter>
+            <Setter Property="Background" Value="#637880"></Setter>
+            <Setter Property="Foreground" Value="WhiteSmoke"></Setter>
+            <Setter Property="FontSize" Value="18"></Setter>
+        </Style>
+    </Window.Resources>
+    <Border CornerRadius="20" Background="#2B6F85" Margin="20">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+
+            <Grid.RowDefinitions>
+                <RowDefinition Height="0.5*"/>
+                <RowDefinition Height="3*"/>
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.ColumnSpan="3" Grid.Row="0" Margin="0 20 0 0" VerticalAlignment="Bottom">
+                <Label Content="Login" FontSize="25" Foreground="WhiteSmoke" FontWeight="Bold" HorizontalAlignment="Center"></Label>
+                <Separator></Separator>
+            </StackPanel>
+
+            <StackPanel Margin="15 0 15 0" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center">
+                <Label Content="Email" Style="{StaticResource LabelsStyle}"></Label>
+                <TextBox Name="EmailTextBox" Style="{StaticResource TextBoxesStyle}"></TextBox>
+
+                <Label Content="Password" Style="{StaticResource LabelsStyle}"></Label>
+                <TextBox Name="PasswordTextBox" Style="{StaticResource TextBoxesStyle}"></TextBox>
+
+                <Label Name="ErrorLabel" Visibility="Hidden" Content="* THIS IS AN ERROR" FontSize="18" Foreground="Red"></Label>
+                <Button Name="LoginButton" Content="Login" Style="{StaticResource ButtonStyle}"></Button>
+
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>
