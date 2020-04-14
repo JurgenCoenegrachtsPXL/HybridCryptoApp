@@ -6,7 +6,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls.Primitives;
 using HybridCryptoApp.Crypto;
 using HybridCryptoApp.Networking;
 using HybridCryptoApp.Networking.Models;
@@ -76,6 +75,12 @@ namespace HybridCryptoApp.Windows
 
             foreach (StrippedDownEncryptedPacket packet in sentPackets)
             {
+                // skip if current user is both the sender and receiver
+                if (packet.Receiver.Id == packet.Sender.Id)
+                {
+                    continue;
+                }
+
                 // find sender in contact list
                 ContactPerson receiver = contactList.FirstOrDefault(c => c.Id == packet.Sender.Id);
                 if (receiver != null)
