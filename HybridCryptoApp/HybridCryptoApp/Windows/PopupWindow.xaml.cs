@@ -25,7 +25,7 @@ namespace HybridCryptoApp.Windows
         {
             InitializeComponent();
 
-            Title.Text = titleText;
+            TitleTextBlock.Content = titleText;
 
             Closed += PopupWindow_Closed;
         }

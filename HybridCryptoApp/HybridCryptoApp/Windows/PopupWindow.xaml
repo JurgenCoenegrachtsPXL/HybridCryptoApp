@@ -7,8 +7,44 @@
         mc:Ignorable="d"
         Title="Popup" Height="117.678" Width="263.389"
         KeyDown="Window_KeyDown">
+    <Window.Resources>
+        <Style x:Key="LabelsStyle" TargetType="Control">
+            <Setter Property="Foreground" Value="WhiteSmoke"></Setter>
+            <Setter Property="FontSize" Value="18"></Setter>
+        </Style>
+
+        <Style x:Key="BoxesStyle" TargetType="Control">
+            <Setter Property="Foreground" Value="WhiteSmoke"></Setter>
+            <Setter Property="Background" Value="#88BACC"></Setter>
+            <Setter Property="FontSize" Value="15"></Setter>
+            <Setter Property="Height" Value="30"></Setter>
+        </Style>
+
+        <Style x:Key="ButtonStyle" TargetType="Button">
+            <Setter Property="Margin" Value="60 15"></Setter>
+            <Setter Property="Background" Value="#637880"></Setter>
+            <Setter Property="Foreground" Value="WhiteSmoke"></Setter>
+            <Setter Property="FontSize" Value="18"></Setter>
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border CornerRadius="10" Background="#637880" BorderThickness="1" Padding="2">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="FontWeight" Value="Bold" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
     <StackPanel>
-        <TextBlock Name="Title" Text="testText" HorizontalAlignment="Center" Margin="5" FontSize="20"></TextBlock>
+        <TextBlock Name="TitleTextBlock" Text="Text" Style="{StaticResource LabelsStyle}" HorizontalAlignment="Center" Margin="5" FontSize="20"></TextBlock>
         <TextBox Name="UserInput"></TextBox>
         <Button Name="OkButton" Click="OkButton_Click">Ok</Button>
     </StackPanel>
