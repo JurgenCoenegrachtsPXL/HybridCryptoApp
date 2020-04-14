@@ -16,9 +16,12 @@ namespace HybridCryptoApp.Networking
         private const string NewMessagePath = "/api/Message/NewMessage";
         private const string AsReceiverPath = "/api/Message/AsReceiver";
         private const string AsSenderPath = "/api/Message/AsSender";
-        private const string AddContactPath = "/api/UserContact/add";
+
+        private const string AddContactByIdPath = "/api/UserContact/addById";
+        private const string AddContactByEmailPath = "/api/UserContact/addByEmail";
         private const string RemoveContactPath = "/api/UserContact/remove";
         private const string AllContactsPath = "/api/UserContact/all";
+
         private const string RegistrationPath = "/api/Authentication/register";
         private const string LoginPath = "/api/Authentication/token";
 
@@ -215,7 +218,7 @@ namespace HybridCryptoApp.Networking
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static async Task AddContact(int id)
+        public static async Task AddContactById(int id)
         {
             HttpContent content = Stringify(new UserContactModel()
             {
@@ -226,7 +229,31 @@ namespace HybridCryptoApp.Networking
             HttpResponseMessage response;
             try
             {
-                response = await HttpClient.PostAsync(AddContactPath, content);
+                response = await HttpClient.PostAsync(AddContactByIdPath, content);
+            }
+            catch (HttpRequestException e)
+            {
+                throw new ClientException("Failed to contact server", e);
+            }
+
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new ClientException($"Couldn't add contact, code: {response.StatusCode} reason: " + await response.Content.ReadAsStringAsync());
+            }
+        }
+
+        public static async Task AddContactByEmail(string email)
+        {
+            HttpContent content = Stringify(new UserContactModel()
+            {
+                ContactEmail = email
+            });
+
+            // try to send to server
+            HttpResponseMessage response;
+            try
+            {
+                response = await HttpClient.PostAsync(AddContactByEmailPath, content);
             }
             catch (HttpRequestException e)
             {

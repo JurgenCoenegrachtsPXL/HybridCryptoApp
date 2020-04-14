@@ -53,8 +53,8 @@
                         <ColumnDefinition Width="0.5*"/>
                     </Grid.ColumnDefinitions>
 
-                    <TextBox Background="#88BACC" Grid.Column="0" Margin="20 0 10 0" MaxHeight="100" TextWrapping="Wrap"  AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
-                    <Button FontSize="15" Foreground="WhiteSmoke" Background="#637880" Grid.Column="1" Margin="10 0 10 0" VerticalAlignment="Bottom">Send</Button>
+                    <TextBox Name="MessageTextBox"  Background="#88BACC" Grid.Column="0" Margin="20 0 10 0" MaxHeight="100" TextWrapping="Wrap"  AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+                    <Button Name="SendButton" FontSize="15" Foreground="WhiteSmoke" Background="#637880" Grid.Column="1" Margin="10 0 10 0" VerticalAlignment="Bottom" Click="SendButton_Click">Send</Button>
                     <Button FontSize="15" Foreground="#637880" Background="WhiteSmoke" Grid.Column="2" Margin="10 0 10 0" VerticalAlignment="Bottom">Attachment</Button>
                 </Grid>
             </Border>
@@ -64,7 +64,7 @@
 
             <Label FontSize="25" Margin="20" HorizontalAlignment="Center">Contactlist</Label>
 
-            <Button  Height="30" Margin="60 0 60 20">Add new contact</Button>
+            <Button Name="AddNewContactButton" Height="30" Margin="60 0 60 20" Click="AddNewContactButton_Click">Add new contact</Button>
 
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -75,7 +75,7 @@
                 </Grid.ColumnDefinitions>
             </Grid>
 
-            <ListView Name="ContactListListView" ItemsSource="{Binding Path=ContactList}">
+            <ListView Name="ContactListListView">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <Grid HorizontalAlignment="Center" Margin="5">
@@ -87,7 +87,7 @@
 
                             <Border Width="50" Height="40" CornerRadius="25" BorderBrush="White" BorderThickness="0.6">
                                 <Border.Background>
-                                    <ImageBrush ImageSource="pack://application:,,,/HydroCripAppWpfOriginal;component/Assets/UserIcon.png"/>
+                                    <ImageBrush ImageSource="pack://application:,,,/HybridCryptoApp;component/Assets/UserIcon.png"/>
                                 </Border.Background>
                             </Border>
 

@@ -41,6 +41,13 @@ namespace HybridCryptoApp.Windows
             try
             {
                 await Client.Login(EmailTextBox.Text, PasswordTextBox.Text);
+
+                await Task.Delay(1_000);
+
+                //move to chat window
+                ChatWindow chat = new ChatWindow();
+                chat.Show();
+                this.Close();
             }
             catch (ClientException exception)
             {
