@@ -67,7 +67,7 @@ Title="LoginScreen" Height="600" Width="1080" Background="#637880">
                 <Label Content="Password" Style="{StaticResource LabelsStyle}"></Label>
                 <PasswordBox Name="PasswordPasswordBox" Style="{StaticResource BoxesStyle}"></PasswordBox>
 
-                <Label Content="RSA Key" Style="{StaticResource LabelsStyle}"></Label>
+                <Label Content="RSA Key Container Name" Style="{StaticResource LabelsStyle}"></Label>
                 <TextBox Name="RSAKeyTextBox" Style="{StaticResource BoxesStyle}"></TextBox>
 
                 <Label Name="ErrorLabel" Visibility="Hidden" Content="* THIS IS AN ERROR" FontSize="18" Foreground="Red"></Label>

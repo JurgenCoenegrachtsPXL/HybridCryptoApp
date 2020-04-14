@@ -1,16 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using HybridCryptoApp.Crypto;
 using HybridCryptoApp.Networking;
 
 namespace HybridCryptoApp.Windows
@@ -32,16 +23,22 @@ namespace HybridCryptoApp.Windows
 
             try
             {
-                // ty to register
-                await Client.Register(EmailTextBox.Text, PasswordTextBox.Password, FirstNameTextBox.Text, LastNameTextBox.Text);
+                // load given key
+                AsymmetricEncryption.SelectKeyPair(RSAKeyTextBox.Text, 4096);
 
-                // TODO: show success message
+                List<Task> tasks = new List<Task>();
 
-                // wait 3 seconds
-                await Task.Delay(3_000);
+                // try to register
+                tasks.Add(Client.Register(EmailTextBox.Text, PasswordTextBox.Password, FirstNameTextBox.Text, LastNameTextBox.Text, AsymmetricEncryption.PublicKeyAsXml()));
+
+                // wait at least 3 seconds
+                tasks.Add(Task.Delay(3_000));
+
+                // wait for 3 second timer and registration to complete, whichever finishes last
+                await Task.WhenAll(tasks);
 
                 // move to login window
-                LoginWindow login = new LoginWindow(EmailTextBox.Text, PasswordTextBox.Password);
+                LoginWindow login = new LoginWindow(EmailTextBox.Text, PasswordTextBox.Password, RSAKeyTextBox.Text);
                 login.Show();
                 this.Close();
             }

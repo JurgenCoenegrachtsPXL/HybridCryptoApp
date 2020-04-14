@@ -85,15 +85,17 @@ namespace HybridCryptoApp.Networking
         /// <param name="password"></param>
         /// <param name="firstName"></param>
         /// <param name="lastName"></param>
+        /// <param name="publicKey">XML representation of public key</param>
         /// <returns></returns>
-        public static async Task Register(string email, string password, string firstName, string lastName)
+        public static async Task Register(string email, string password, string firstName, string lastName, string publicKey)
         {
             HttpContent messageContent = Stringify(new RegistrationModel()
             {
                 Email = email,
                 Password = password,
                 FirstName = firstName,
-                LastName = lastName
+                LastName = lastName,
+                PublicKey = publicKey
             });
 
             // try to send to server

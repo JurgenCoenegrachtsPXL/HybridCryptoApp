@@ -6,7 +6,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls.Primitives;
 using HybridCryptoApp.Crypto;
 using HybridCryptoApp.Networking;
 using HybridCryptoApp.Networking.Models;
@@ -18,7 +17,7 @@ namespace HybridCryptoApp.Windows
     /// </summary>
     public partial class ChatWindow : Window
     {
-        private ObservableCollection<ContactPerson> contactList = new ObservableCollection<ContactPerson>();
+        private readonly ObservableCollection<ContactPerson> contactList = new ObservableCollection<ContactPerson>();
         public ContactPerson SelectedContact { get; set; }
 
         private List<StrippedDownEncryptedPacket> receivedPackets;
@@ -34,7 +33,7 @@ namespace HybridCryptoApp.Windows
             ContactListListView.ItemsSource = contactList;
 
             // load all contacts and messages
-            Task.Run(async () => { await RetrieveMessages(); });
+            new Action(async () => { await RetrieveMessages(); })();
         }
 
         /// <summary>
@@ -47,7 +46,7 @@ namespace HybridCryptoApp.Windows
             {
                 // get contacts
                 (await Client.GetAllContacts()).ForEach(c => contactList.Add(c));
-
+                
                 // get all messages
                 receivedPackets = await Client.GetReceivedMessages();
                 sentPackets = await Client.GetSentMessages();
@@ -76,6 +75,12 @@ namespace HybridCryptoApp.Windows
 
             foreach (StrippedDownEncryptedPacket packet in sentPackets)
             {
+                // skip if current user is both the sender and receiver
+                if (packet.Receiver.Id == packet.Sender.Id)
+                {
+                    continue;
+                }
+
                 // find sender in contact list
                 ContactPerson receiver = contactList.FirstOrDefault(c => c.Id == packet.Sender.Id);
                 if (receiver != null)
@@ -89,8 +94,8 @@ namespace HybridCryptoApp.Windows
                 }
             }
 
-            // sort all messages
-            foreach (ContactPerson contactPerson in contactList.AsEnumerable())
+            // sort all messages of all contacts
+            foreach (ContactPerson contactPerson in contactList.AsEnumerable() ?? Enumerable.Empty<ContactPerson>())
             {
                 contactPerson.Messages.Sort();
             }
@@ -111,8 +116,18 @@ namespace HybridCryptoApp.Windows
             {
                 packet = HybridEncryption.Encrypt(DataType.Message, Encoding.UTF8.GetBytes(text), AsymmetricEncryption.PublicKeyFromXml(contact.PublicKey));
             });
-            
-            await Client.SendNewMessage(packet, contact.Id);
+
+            // try to send message and clear input
+            try
+            {
+                await Client.SendNewMessage(packet, contact.Id);
+                MessageTextBox.Clear();
+            }
+            catch (ClientException exception)
+            {
+                // TODO: show message to user
+                MessageBox.Show(exception.Message);
+            }
         }
 
         private async void AddNewContactButton_Click(object sender, RoutedEventArgs e)
