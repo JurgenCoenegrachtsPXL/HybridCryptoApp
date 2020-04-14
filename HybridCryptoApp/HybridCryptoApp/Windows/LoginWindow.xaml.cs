@@ -16,12 +16,13 @@ namespace HybridCryptoApp.Windows
             InitializeComponent();
         }
 
-        public LoginWindow(string email, string password)
+        public LoginWindow(string email, string password, string rsaContainerName)
         {
             InitializeComponent();
 
             EmailTextBox.Text = email;
             PasswordPasswordBox.Password = password;
+            RSAKeyTextBox.Text = rsaContainerName;
         }
 
         private async void LoginButton_Click(object sender, RoutedEventArgs e)

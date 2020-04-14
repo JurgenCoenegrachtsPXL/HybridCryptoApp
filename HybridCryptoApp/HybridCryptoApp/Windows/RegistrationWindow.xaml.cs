@@ -38,7 +38,7 @@ namespace HybridCryptoApp.Windows
                 await Task.WhenAll(tasks);
 
                 // move to login window
-                LoginWindow login = new LoginWindow(EmailTextBox.Text, PasswordTextBox.Password);
+                LoginWindow login = new LoginWindow(EmailTextBox.Text, PasswordTextBox.Password, RSAKeyTextBox.Text);
                 login.Show();
                 this.Close();
             }
