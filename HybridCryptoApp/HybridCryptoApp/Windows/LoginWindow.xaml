@@ -5,14 +5,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HybridCryptoApp.Windows"
         mc:Ignorable="d"
-Title="LoginScreen" Height="450" Width="800" Background="#637880">
+Title="LoginScreen" Height="600" Width="1080" Background="#637880">
     <Window.Resources>
         <Style x:Key="LabelsStyle" TargetType="Label">
             <Setter Property="Foreground" Value="WhiteSmoke"></Setter>
             <Setter Property="FontSize" Value="18"></Setter>
         </Style>
 
-        <Style x:Key="TextBoxesStyle" TargetType="TextBox">
+        <Style x:Key="BoxesStyle" TargetType="Control">
             <Setter Property="Foreground" Value="WhiteSmoke"></Setter>
             <Setter Property="Background" Value="#88BACC"></Setter>
             <Setter Property="FontSize" Value="15"></Setter>
@@ -46,13 +46,17 @@ Title="LoginScreen" Height="450" Width="800" Background="#637880">
 
             <StackPanel Margin="15 0 15 0" Grid.Column="1" Grid.Row="1" VerticalAlignment="Center">
                 <Label Content="Email" Style="{StaticResource LabelsStyle}"></Label>
-                <TextBox Name="EmailTextBox" Style="{StaticResource TextBoxesStyle}"></TextBox>
+                <TextBox Name="EmailTextBox" Style="{StaticResource BoxesStyle}"></TextBox>
 
                 <Label Content="Password" Style="{StaticResource LabelsStyle}"></Label>
-                <TextBox Name="PasswordTextBox" Style="{StaticResource TextBoxesStyle}"></TextBox>
+                <PasswordBox Name="PasswordPasswordBox" Style="{StaticResource BoxesStyle}"></PasswordBox>
+
+                <Label Content="RSA Key" Style="{StaticResource LabelsStyle}"></Label>
+                <TextBox Name="RSAKeyTextBox" Style="{StaticResource BoxesStyle}"></TextBox>
 
                 <Label Name="ErrorLabel" Visibility="Hidden" Content="* THIS IS AN ERROR" FontSize="18" Foreground="Red"></Label>
                 <Button Name="LoginButton" Content="Login" Style="{StaticResource ButtonStyle}" Click="LoginButton_Click"></Button>
+
 
             </StackPanel>
         </Grid>

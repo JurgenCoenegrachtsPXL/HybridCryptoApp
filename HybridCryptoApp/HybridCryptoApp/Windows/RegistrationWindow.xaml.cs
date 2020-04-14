@@ -33,7 +33,7 @@ namespace HybridCryptoApp.Windows
             try
             {
                 // ty to register
-                await Client.Register(EmailTextBox.Text, PasswordTextBox.Text, FirstNameTextBox.Text, LastNameTextBox.Text);
+                await Client.Register(EmailTextBox.Text, PasswordTextBox.Password, FirstNameTextBox.Text, LastNameTextBox.Text);
 
                 // TODO: show success message
 
@@ -41,7 +41,7 @@ namespace HybridCryptoApp.Windows
                 await Task.Delay(3_000);
 
                 // move to login window
-                LoginWindow login = new LoginWindow(EmailTextBox.Text, PasswordTextBox.Text);
+                LoginWindow login = new LoginWindow(EmailTextBox.Text, PasswordTextBox.Password);
                 login.Show();
                 this.Close();
             }

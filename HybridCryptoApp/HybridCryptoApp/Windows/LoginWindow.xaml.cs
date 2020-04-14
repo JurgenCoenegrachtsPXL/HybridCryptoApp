@@ -30,7 +30,7 @@ namespace HybridCryptoApp.Windows
             InitializeComponent();
 
             EmailTextBox.Text = email;
-            PasswordTextBox.Text = password;
+            PasswordPasswordBox.Password = password;
         }
 
         private async void LoginButton_Click(object sender, RoutedEventArgs e)
@@ -40,7 +40,7 @@ namespace HybridCryptoApp.Windows
 
             try
             {
-                await Client.Login(EmailTextBox.Text, PasswordTextBox.Text);
+                await Client.Login(EmailTextBox.Text, PasswordPasswordBox.Password);
             }
             catch (ClientException exception)
             {
