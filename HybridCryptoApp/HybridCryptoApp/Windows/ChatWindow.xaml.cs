@@ -18,7 +18,7 @@ namespace HybridCryptoApp.Windows
     /// </summary>
     public partial class ChatWindow : Window
     {
-        private ObservableCollection<ContactPerson> contactList = new ObservableCollection<ContactPerson>();
+        private readonly ObservableCollection<ContactPerson> contactList = new ObservableCollection<ContactPerson>();
         public ContactPerson SelectedContact { get; set; }
 
         private List<StrippedDownEncryptedPacket> receivedPackets;
@@ -34,7 +34,7 @@ namespace HybridCryptoApp.Windows
             ContactListListView.ItemsSource = contactList;
 
             // load all contacts and messages
-            Task.Run(async () => { await RetrieveMessages(); });
+            new Action(async () => { await RetrieveMessages(); })();
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace HybridCryptoApp.Windows
             {
                 // get contacts
                 (await Client.GetAllContacts()).ForEach(c => contactList.Add(c));
-
+                
                 // get all messages
                 receivedPackets = await Client.GetReceivedMessages();
                 sentPackets = await Client.GetSentMessages();
@@ -89,8 +89,8 @@ namespace HybridCryptoApp.Windows
                 }
             }
 
-            // sort all messages
-            foreach (ContactPerson contactPerson in contactList.AsEnumerable())
+            // sort all messages of all contacts
+            foreach (ContactPerson contactPerson in contactList.AsEnumerable() ?? Enumerable.Empty<ContactPerson>())
             {
                 contactPerson.Messages.Sort();
             }
@@ -111,8 +111,18 @@ namespace HybridCryptoApp.Windows
             {
                 packet = HybridEncryption.Encrypt(DataType.Message, Encoding.UTF8.GetBytes(text), AsymmetricEncryption.PublicKeyFromXml(contact.PublicKey));
             });
-            
-            await Client.SendNewMessage(packet, contact.Id);
+
+            // try to send message and clear input
+            try
+            {
+                await Client.SendNewMessage(packet, contact.Id);
+                MessageTextBox.Clear();
+            }
+            catch (ClientException exception)
+            {
+                // TODO: show message to user
+                MessageBox.Show(exception.Message);
+            }
         }
 
         private async void AddNewContactButton_Click(object sender, RoutedEventArgs e)

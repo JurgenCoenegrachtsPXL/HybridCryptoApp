@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HybridCryptoApp.Windows"
+        xmlns:networking="clr-namespace:HybridCryptoApp.Networking"
         mc:Ignorable="d"
         Title="ChatScreen" Height="600" Width="1080">
     <Grid>
@@ -23,10 +24,10 @@
                 <StackPanel.Effect>
                     <DropShadowEffect BlurRadius="30" ShadowDepth="1"/>
                 </StackPanel.Effect>
-                <TextBlock Margin="20" Text="{Binding ElementName=ContactListListView, Path=SelectedItem.UserName}" FontSize="28" VerticalAlignment="Center"/>
+                <TextBlock Margin="20" Text="{Binding ElementName=ContactListListView, Path=SelectedItem.(networking:ContactPerson.UserName)}" FontSize="28" VerticalAlignment="Center"/>
             </StackPanel>
 
-            <ListView Background="WhiteSmoke" Grid.Row="1" Name="MessagesListview" ItemsSource="{Binding ElementName=ContactListListView, Path=SelectedItem.Messages}">
+            <ListView Background="WhiteSmoke" Grid.Row="1" Name="MessagesListview" ItemsSource="{Binding ElementName=ContactListListView, Path=SelectedItem.(networking:ContactPerson.Messages)}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <Grid HorizontalAlignment="Center" Margin="5">
@@ -75,7 +76,7 @@
                 </Grid.ColumnDefinitions>
             </Grid>
 
-            <ListView Name="ContactListListView">
+            <ListView Name="ContactListListView" SelectionMode="Single" SelectedItem="{Binding SelectedContact}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <Grid HorizontalAlignment="Center" Margin="5">
