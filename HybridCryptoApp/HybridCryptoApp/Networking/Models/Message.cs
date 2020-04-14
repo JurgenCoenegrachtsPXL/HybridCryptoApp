@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace HybridCryptoApp.Windows
+namespace HybridCryptoApp.Networking.Models
 {
     public class Message : IComparable<Message>
     {

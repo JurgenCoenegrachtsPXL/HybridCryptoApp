@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using HybridCryptoApp.Networking.Models;
 using HybridCryptoApp.Windows;
 
 namespace HybridCryptoApp.Networking
