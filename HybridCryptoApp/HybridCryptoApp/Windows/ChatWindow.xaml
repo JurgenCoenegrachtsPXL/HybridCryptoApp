@@ -39,7 +39,7 @@
                         <Setter.Value>
                             <StackPanel Orientation="Horizontal">
                                 <Label>Has sent a file</Label>
-                                <Button Name="DownloadButton" Content="Download" Click="DownloadButton_Click"></Button>
+                                <Button Name="DownloadButton" Content="Download" Click="DownloadButton_Click" Style="{DynamicResource DownloadButtonStyle}"></Button>
                             </StackPanel>
                         </Setter.Value>
                     </Setter>
@@ -55,6 +55,11 @@
                     </Setter>
                 </DataTrigger>
             </Style.Triggers>
+        </Style>
+
+        <Style x:Key="DownloadButtonStyle" TargetType="Button">
+            <EventSetter Event="Click" Handler="DownloadButton_Click">
+            </EventSetter>
         </Style>
     </Window.Resources>
     <Grid>
