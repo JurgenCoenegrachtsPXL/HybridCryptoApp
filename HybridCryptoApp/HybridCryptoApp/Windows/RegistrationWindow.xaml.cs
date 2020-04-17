@@ -25,6 +25,9 @@ namespace HybridCryptoApp.Windows
             // make sure user can't press button multiple times
             RegisterButton.IsEnabled = false;
 
+            // make error label empty
+            ErrorLabel.Content = "";
+
             // check email
             if (!emailRegex.IsMatch(EmailTextBox.Text.Trim()))
             {
@@ -36,9 +39,16 @@ namespace HybridCryptoApp.Windows
             // check password
             if (!passwordRegex.IsMatch(PasswordTextBox.Password.Trim()))
             {
-                ErrorLabel.Content = "Invalid password. Password should contain at least 1 upper case letter and 1 number";
+                ErrorLabel.Content = "Invalid password. Password should contain at least 1 upper case letter and 1 number.";
                 RegisterButton.IsEnabled = true;
                 return;
+            }
+
+            // check if passwords match
+            if (!PasswordTextBox.Password.Equals(PasswordConfirmationTextBox.Password))
+            {
+                ErrorLabel.Content = "Password and Password Confirmation are different.";
+                RegisterButton.IsEnabled = true;
             }
 
             try
