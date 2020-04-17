@@ -5,11 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HybridCryptoApp.Windows"
         mc:Ignorable="d"
-        Title="Popup" Height="117.678" Width="263.389"
+        Title="Popup" Height="130" Width="265" Background="WhiteSmoke"
         KeyDown="Window_KeyDown">
     <Window.Resources>
-        <Style x:Key="LabelsStyle" TargetType="Control">
-            <Setter Property="Foreground" Value="WhiteSmoke"></Setter>
+        <Style x:Key="LabelsStyle" TargetType="Label">
+            <Setter Property="Foreground" Value="Black"></Setter>
             <Setter Property="FontSize" Value="18"></Setter>
         </Style>
 
@@ -17,14 +17,13 @@
             <Setter Property="Foreground" Value="WhiteSmoke"></Setter>
             <Setter Property="Background" Value="#88BACC"></Setter>
             <Setter Property="FontSize" Value="15"></Setter>
-            <Setter Property="Height" Value="30"></Setter>
         </Style>
 
         <Style x:Key="ButtonStyle" TargetType="Button">
-            <Setter Property="Margin" Value="60 15"></Setter>
             <Setter Property="Background" Value="#637880"></Setter>
             <Setter Property="Foreground" Value="WhiteSmoke"></Setter>
             <Setter Property="FontSize" Value="18"></Setter>
+            <Setter Property="Margin" Value="0 10 0 0"></Setter>
 
             <Setter Property="Template">
                 <Setter.Value>
@@ -44,8 +43,8 @@
         </Style>
     </Window.Resources>
     <StackPanel>
-        <TextBlock Name="TitleTextBlock" Text="Text" Style="{StaticResource LabelsStyle}" HorizontalAlignment="Center" Margin="5" FontSize="20"></TextBlock>
-        <TextBox Name="UserInput"></TextBox>
-        <Button Name="OkButton" Click="OkButton_Click">Ok</Button>
+        <Label Name="TitleTextBlock" Content="Text" Style="{StaticResource LabelsStyle}" HorizontalAlignment="Center"></Label>
+        <TextBox Name="UserInput" Margin="2 0 2 0" Style="{StaticResource BoxesStyle}"></TextBox>
+        <Button Name="OkButton" Style="{StaticResource ButtonStyle}" Click="OkButton_Click">Ok</Button>
     </StackPanel>
 </Window>
