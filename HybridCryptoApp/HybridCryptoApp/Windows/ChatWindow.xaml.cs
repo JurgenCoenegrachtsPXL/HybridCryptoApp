@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Data;
 using HybridCryptoApp.Crypto;
 using HybridCryptoApp.Networking;
 using HybridCryptoApp.Networking.Models;
@@ -89,14 +91,16 @@ namespace HybridCryptoApp.Windows
         /// <returns></returns>
         private async Task RetrieveAll()
         {
+            List<StrippedDownEncryptedPacket> allPackets;
+
             try
             {
                 // get contacts
                 (await Client.GetAllContacts()).ForEach(c => contactList.Add(c));
-                
+
                 // get all messages
-                receivedPackets = await Client.GetReceivedMessages();
-                sentPackets = await Client.GetSentMessages();
+                receivedPackets = (await Client.GetReceivedMessages()).ToList();
+                sentPackets = (await Client.GetSentMessages()).ToList();
             }
             catch (ClientException exception)
             {
@@ -129,8 +133,8 @@ namespace HybridCryptoApp.Windows
                     continue;
                 }
 
-                // find sender in contact list
-                ContactPerson receiver = contactList.FirstOrDefault(c => c.Id == packet.Sender.Id);
+                // find receiver in contact list
+                ContactPerson receiver = contactList.FirstOrDefault(c => c.Id == packet.Receiver.Id);
                 if (receiver != null)
                 {
                     receiver.Messages.Add(new Message()
@@ -146,7 +150,7 @@ namespace HybridCryptoApp.Windows
             // sort all messages of all contacts
             foreach (ContactPerson contactPerson in contactList.AsEnumerable() ?? Enumerable.Empty<ContactPerson>())
             {
-                contactPerson.Messages.Sort();
+                CollectionViewSource.GetDefaultView(contactPerson.Messages).SortDescriptions.Add(new SortDescription(nameof(Message.MessageFromSender), ListSortDirection.Ascending));
             }
         }
 
@@ -158,6 +162,10 @@ namespace HybridCryptoApp.Windows
         private async void SendButton_Click(object sender, RoutedEventArgs e)
         {
             ContactPerson contact = (ContactPerson)ContactListListView.SelectedItem;
+            if (contact == null)
+            {
+                return;
+            }
 
             EncryptedPacket packet = null;
             string text = MessageTextBox.Text;

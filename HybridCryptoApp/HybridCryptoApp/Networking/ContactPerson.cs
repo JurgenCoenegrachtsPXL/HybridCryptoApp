@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using HybridCryptoApp.Networking.Models;
 using HybridCryptoApp.Windows;
 
@@ -16,7 +17,7 @@ namespace HybridCryptoApp.Networking
         public string LastName { get; set; }
         public string PublicKey { get; set; }
 
-        public List<Message> Messages { get; set; } = new List<Message>();
+        public ObservableCollection<Message> Messages { get; set; } = new ObservableCollection<Message>();
         public string LastMessage { get; set; }
 
         protected bool Equals(ContactPerson other)

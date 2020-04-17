@@ -49,7 +49,7 @@
                     <Setter Property="Content">
                         <Setter.Value>
                             <StackPanel>
-                                <Label Content="{Binding Message}"/>
+                                <Label Content="{Binding Path=MessageFromSender, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
                             </StackPanel>
                         </Setter.Value>
                     </Setter>
