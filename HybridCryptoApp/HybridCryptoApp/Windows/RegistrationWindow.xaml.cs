@@ -44,7 +44,8 @@ namespace HybridCryptoApp.Windows
             try
             {
                 // load given RSA container
-                await Task.Run(() => { AsymmetricEncryption.SelectKeyPair(RSAKeyTextBox.Text, 4096); });
+                string containerName = RSAKeyTextBox.Text;
+                await Task.Run(() => { AsymmetricEncryption.SelectKeyPair(containerName, 4096); });
                 
                 List<Task> tasks = new List<Task>();
 

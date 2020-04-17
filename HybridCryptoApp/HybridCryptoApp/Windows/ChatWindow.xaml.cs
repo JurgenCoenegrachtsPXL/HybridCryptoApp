@@ -33,14 +33,60 @@ namespace HybridCryptoApp.Windows
             ContactListListView.ItemsSource = contactList;
 
             // load all contacts and messages
-            new Action(async () => { await RetrieveMessages(); })();
+            new Action(async () => { await RetrieveAll(); })();
+        }
+
+        /// <summary>
+        /// Update contacts
+        /// </summary>
+        /// <returns></returns>
+        private async Task RetrieveContacts()
+        {
+            List<ContactPerson> currentContacts = contactList.ToList();
+            List<ContactPerson> newContacts = await Client.GetAllContacts();
+
+            // removed
+            currentContacts.Except(newContacts)
+                .ToList()
+                .ForEach(c => contactList.Remove(c));
+
+            // added
+            List<Task> tasks = new List<Task>();
+
+            newContacts.Except(currentContacts)
+                .ToList()
+                .ForEach(c =>
+                {
+                    contactList.Add(c);
+                    tasks.Add(RetrieveMessagesOfContact(c.Id));
+                });
+
+            await Task.WhenAll(tasks);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="contactId"></param>
+        /// <returns></returns>
+        private async Task RetrieveMessagesOfContact(int contactId)
+        {
+            List<StrippedDownEncryptedPacket> packets = await Client.MessagesOfContact(contactId);
+
+            ContactPerson contact = contactList.First(c => c.Id == contactId);
+            packets.ForEach(e => contact.Messages.Add(new Message()
+            {
+                SenderName = e.Sender.FirstName + " " + e.Sender.LastName,
+                SendTime = e.SendDateTime,
+                MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(e.EncryptedPacket, AsymmetricEncryption.PublicKeyFromXml(contact.PublicKey)))
+            }));
         }
 
         /// <summary>
         /// Retrieve all messages from all contacts
         /// </summary>
         /// <returns></returns>
-        private async Task RetrieveMessages()
+        private async Task RetrieveAll()
         {
             try
             {
@@ -130,6 +176,11 @@ namespace HybridCryptoApp.Windows
             }
         }
 
+        /// <summary>
+        /// Add a new contact to the list of contacts
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void AddNewContactButton_Click(object sender, RoutedEventArgs e)
         {
             // get id or email from user
@@ -150,6 +201,9 @@ namespace HybridCryptoApp.Windows
                     // EMAIL
                     await Client.AddContactByEmail(inputDataNewContactPerson);
                 }
+
+                // update contacts
+                await RetrieveContacts();
             }
             catch (ClientException exception)
             {

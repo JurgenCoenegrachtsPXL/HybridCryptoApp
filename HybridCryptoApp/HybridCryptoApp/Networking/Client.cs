@@ -16,6 +16,7 @@ namespace HybridCryptoApp.Networking
         private const string NewMessagePath = "/api/Message/NewMessage";
         private const string AsReceiverPath = "/api/Message/AsReceiver";
         private const string AsSenderPath = "/api/Message/AsSender";
+        private const string MessagesOfContactPath = "/api/Message/OfContact/";
 
         private const string AddContactByIdPath = "/api/UserContact/addById";
         private const string AddContactByEmailPath = "/api/UserContact/addByEmail";
@@ -322,6 +323,33 @@ namespace HybridCryptoApp.Networking
             string content = await response.Content.ReadAsStringAsync();
 
             return JsonConvert.DeserializeObject<List<ContactPerson>>(content);
+        }
+
+        /// <summary>
+        /// Get all messages of a contact
+        /// </summary>
+        /// <param name="contactId"></param>
+        /// <returns></returns>
+        public static async Task<List<StrippedDownEncryptedPacket>> MessagesOfContact(int contactId)
+        {
+            HttpResponseMessage response;
+            try
+            {
+                response = await HttpClient.GetAsync(MessagesOfContactPath + contactId);
+            }
+            catch (HttpRequestException e)
+            {
+                throw new ClientException("Failed to contact server", e);
+            }
+
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new ClientException($"Couldn't get messages of contact, code: {response.StatusCode} reason: " + await response.Content.ReadAsStringAsync());
+            }
+
+            string content = await response.Content.ReadAsStringAsync();
+
+            return JsonConvert.DeserializeObject<List<StrippedDownEncryptedPacket>>(content);
         }
 
         /// <summary>
