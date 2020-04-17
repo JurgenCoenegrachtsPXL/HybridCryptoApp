@@ -176,9 +176,9 @@ namespace HybridCryptoApp.Windows
         {
             DateTime startRequest = DateTime.Now;
 
-            List<StrippedDownEncryptedPacket> received = await Client.GetReceivedMessagesAfter(lastUpdated);
+            List<StrippedDownEncryptedPacket> received = await Client.GetReceivedMessagesAfter(lastUpdated.AddSeconds(-1));
 
-            lastUpdated = startRequest;
+            lastUpdated = (startRequest > lastUpdated) ? startRequest : lastUpdated;
 
             // try to link messages to contacts
             foreach (StrippedDownEncryptedPacket packet in received)
@@ -187,13 +187,18 @@ namespace HybridCryptoApp.Windows
                 ContactPerson sender = contactList.FirstOrDefault(c => c.Id == packet.Sender.Id);
                 if (sender != null)
                 {
-                    sender.Messages.Add(new Message()
+                    // ignore duplicates
+                    if (sender.Messages.All(m => m.SendTime != packet.SendDateTime))
                     {
-                        SenderName = sender.UserName,
-                        SendTime = packet.SendDateTime,
-                        MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKeyFromXml(sender.PublicKey))),
-                        DataType = packet.DataType
-                    });
+                        // add new message to chat
+                        sender.Messages.Add(new Message()
+                        {
+                            SenderName = sender.UserName,
+                            SendTime = packet.SendDateTime,
+                            MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKeyFromXml(sender.PublicKey))),
+                            DataType = packet.DataType
+                        });
+                    }
                 }
             }
         }
