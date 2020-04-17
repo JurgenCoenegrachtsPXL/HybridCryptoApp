@@ -25,7 +25,9 @@ namespace HybridCryptoApp.Networking
         // relative paths in api
         private const string NewMessagePath = "/api/Message/NewMessage";
         private const string AsReceiverPath = "/api/Message/AsReceiver";
+        private const string AsReceiverAfterPath = "/api/Message/AsReceiverAfter";
         private const string AsSenderPath = "/api/Message/AsSender";
+        private const string AsSenderAfterPath = "/api/Message/AsSenderAfter";
         private const string MessagesOfContactPath = "/api/Message/OfContact/";
 
         private const string AddContactByIdPath = "/api/UserContact/addById";
@@ -121,7 +123,7 @@ namespace HybridCryptoApp.Networking
             catch (HttpRequestException e)
             {
                 throw new ClientException("Failed to contact server", e);
-            } 
+            }
 
             // check statuscode
             if (response.StatusCode != HttpStatusCode.OK)
@@ -139,7 +141,7 @@ namespace HybridCryptoApp.Networking
         /// <returns></returns>
         public static async Task SendNewMessage(EncryptedPacket encryptedPacket, int receiverId, bool meantForReceiver = true)
         {
-            HttpContent messageContent = Stringify(new NewEncryptedPacketModel(encryptedPacket, receiverId){MeantForReceiver = meantForReceiver});
+            HttpContent messageContent = Stringify(new NewEncryptedPacketModel(encryptedPacket, receiverId) { MeantForReceiver = meantForReceiver });
 
             // try to send to server
             HttpResponseMessage response;
@@ -188,7 +190,7 @@ namespace HybridCryptoApp.Networking
                 List<StrippedDownEncryptedPacket> packets = JsonConvert.DeserializeObject<List<StrippedDownEncryptedPacket>>(content);
                 return packets;
             }
-            catch(JsonException e)
+            catch (JsonException e)
             {
                 throw new ClientException("Failed to read list of messages", e);
             }
@@ -364,6 +366,84 @@ namespace HybridCryptoApp.Networking
             string content = await response.Content.ReadAsStringAsync();
 
             return JsonConvert.DeserializeObject<List<StrippedDownEncryptedPacket>>(content);
+        }
+
+        /// <summary>
+        /// Get all messages which this user has received
+        /// </summary>
+        /// <returns>List of packets this user has received</returns>
+        public static async Task<List<StrippedDownEncryptedPacket>> GetReceivedMessagesAfter(DateTime dateTime)
+        {
+            // try to send to server
+            HttpResponseMessage response;
+            try
+            {
+                response = await HttpClient.PostAsync(AsReceiverAfterPath, Stringify(new MessagesAfterModel
+                {
+                    DateTime = dateTime
+                }));
+            }
+            catch (HttpRequestException e)
+            {
+                throw new ClientException("Failed to contact server", e);
+            }
+
+            // check status code
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new ClientException($"Couldn't get received messages, code: {response.StatusCode} reason: " + await response.Content.ReadAsStringAsync());
+            }
+
+            // try to convert response to list of packages
+            try
+            {
+                string content = await response.Content.ReadAsStringAsync();
+                List<StrippedDownEncryptedPacket> packets = JsonConvert.DeserializeObject<List<StrippedDownEncryptedPacket>>(content);
+                return packets;
+            }
+            catch (JsonException e)
+            {
+                throw new ClientException("Failed to read list of messages", e);
+            }
+        }
+
+        /// <summary>
+        /// Get all messages which this user has sent
+        /// </summary>
+        /// <returns>List of all packets which this user has sent to other users</returns>
+        public static async Task<List<StrippedDownEncryptedPacket>> GetSentMessagesAfter(DateTime dateTime)
+        {
+            // try to send to server
+            HttpResponseMessage response;
+            try
+            {
+                response = await HttpClient.PostAsync(AsSenderAfterPath, Stringify(new MessagesAfterModel
+                {
+                    DateTime = dateTime
+                }));
+            }
+            catch (HttpRequestException e)
+            {
+                throw new ClientException("Failed to contact server", e);
+            }
+
+            // check status code
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                throw new ClientException($"Couldn't get sent messages, code: {response.StatusCode} reason: " + await response.Content.ReadAsStringAsync());
+            }
+
+            // try to convert response to list of packages
+            try
+            {
+                string content = await response.Content.ReadAsStringAsync();
+                List<StrippedDownEncryptedPacket> packets = JsonConvert.DeserializeObject<List<StrippedDownEncryptedPacket>>(content);
+                return packets;
+            }
+            catch (JsonException e)
+            {
+                throw new ClientException("Failed to read list of messages", e);
+            }
         }
 
         /// <summary>

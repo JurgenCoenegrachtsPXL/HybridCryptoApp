@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Data;
+using System.Windows.Threading;
 using HybridCryptoApp.Crypto;
 using HybridCryptoApp.Networking;
 using HybridCryptoApp.Networking.Models;
@@ -26,7 +27,7 @@ namespace HybridCryptoApp.Windows
         private List<StrippedDownEncryptedPacket> receivedPackets;
         private List<StrippedDownEncryptedPacket> sentPackets;
         private static readonly Regex IdRegex = new Regex(@"^\d+$");
-
+        private DateTime lastUpdated = DateTime.Now;
 
         public ChatWindow()
         {
@@ -37,6 +38,10 @@ namespace HybridCryptoApp.Windows
 
             // load all contacts and messages
             new Action(async () => { await RetrieveAll(); })();
+
+            DispatcherTimer dispatcherTimer = new DispatcherTimer();
+            dispatcherTimer.Interval = TimeSpan.FromSeconds(3);
+            dispatcherTimer.Tick += RefreshMessages;
         }
 
         /// <summary>
@@ -92,7 +97,7 @@ namespace HybridCryptoApp.Windows
         /// <returns></returns>
         private async Task RetrieveAll()
         {
-            List<StrippedDownEncryptedPacket> allPackets;
+            lastUpdated = DateTime.Now;
 
             try
             {
@@ -142,7 +147,7 @@ namespace HybridCryptoApp.Windows
                     {
                         receiver.Messages.Add(new Message()
                         {
-                            SenderName = receiver.UserName,
+                            SenderName = Client.UserName,
                             SendTime = packet.SendDateTime,
                             MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKey, true)),
                             DataType = packet.DataType
@@ -150,7 +155,7 @@ namespace HybridCryptoApp.Windows
                     }
                     catch (CryptographicException)
                     {
-                        
+
                     }
                 }
             }
@@ -159,6 +164,66 @@ namespace HybridCryptoApp.Windows
             foreach (ContactPerson contactPerson in contactList.AsEnumerable() ?? Enumerable.Empty<ContactPerson>())
             {
                 CollectionViewSource.GetDefaultView(contactPerson.Messages).SortDescriptions.Add(new SortDescription(nameof(Message.SendTime), ListSortDirection.Ascending));
+            }
+        }
+
+        /// <summary>
+        /// Get newest messages
+        /// </summary>
+        /// <returns></returns>
+        private async void RefreshMessages(object obj, EventArgs e)
+        {
+            DateTime startRequest = DateTime.Now;
+
+            List<StrippedDownEncryptedPacket> received = await Client.GetReceivedMessagesAfter(lastUpdated);
+            List<StrippedDownEncryptedPacket> sent = await Client.GetSentMessagesAfter(lastUpdated);
+
+            lastUpdated = startRequest;
+
+            // try to link messages to contacts
+            foreach (StrippedDownEncryptedPacket packet in received)
+            {
+                // find sender in contact list
+                ContactPerson sender = contactList.FirstOrDefault(c => c.Id == packet.Sender.Id);
+                if (sender != null)
+                {
+                    sender.Messages.Add(new Message()
+                    {
+                        SenderName = sender.UserName,
+                        SendTime = packet.SendDateTime,
+                        MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKeyFromXml(sender.PublicKey))),
+                        DataType = packet.DataType
+                    });
+                }
+            }
+
+            foreach (StrippedDownEncryptedPacket packet in sent)
+            {
+                // skip if current user is both the sender and receiver
+                if (packet.Receiver.Id == packet.Sender.Id)
+                {
+                    continue;
+                }
+
+                // find receiver in contact list
+                ContactPerson receiver = contactList.FirstOrDefault(c => c.Id == packet.Receiver.Id);
+                if (receiver != null)
+                {
+                    try
+                    {
+                        receiver.Messages.Add(new Message()
+                        {
+                            SenderName = Client.UserName,
+                            SendTime = packet.SendDateTime,
+                            MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKey, true)),
+                            DataType = packet.DataType
+                        });
+                    }
+                    catch (CryptographicException)
+                    {
+
+                    }
+                }
             }
         }
 

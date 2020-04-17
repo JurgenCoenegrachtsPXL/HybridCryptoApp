@@ -84,6 +84,7 @@
     <Compile Include="Networking\ContactPerson.cs" />
     <Compile Include="Networking\Models\LoginModel.cs" />
     <Compile Include="Networking\Models\LoginResponseModel.cs" />
+    <Compile Include="Networking\Models\MessageAfterModel.cs" />
     <Compile Include="Networking\Models\NewEncryptedPacketModel.cs" />
     <Compile Include="Networking\Models\RegistrationModel.cs" />
     <Compile Include="Networking\Models\StrippedDownEncryptedPacket.cs" />
