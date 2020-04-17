@@ -30,6 +30,32 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
+        
+        <Style x:Key="ConditionalStyle" TargetType="Label">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Path=DataType}" Value="File">
+                    <Setter Property="Foreground" Value="Red" />
+                    <Setter Property="Content" >
+                        <Setter.Value>
+                            <StackPanel Orientation="Horizontal">
+                                <Label>Has sent a file</Label>
+                                <Button Name="DownloadButton" Content="Download" Click="DownloadButton_Click"></Button>
+                            </StackPanel>
+                        </Setter.Value>
+                    </Setter>
+                </DataTrigger>
+                
+                <DataTrigger Binding="{Binding Path=DataType}" Value="Message">
+                    <Setter Property="Content">
+                        <Setter.Value>
+                            <StackPanel>
+                                <Label Content="{Binding Message}"/>
+                            </StackPanel>
+                        </Setter.Value>
+                    </Setter>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>

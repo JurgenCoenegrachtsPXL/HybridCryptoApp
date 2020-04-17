@@ -81,8 +81,6 @@
 
                 <Label Name="ErrorLabel" Visibility="Hidden" Content="* THIS IS AN ERROR" FontSize="18" Foreground="Red"></Label>
                 <Button Name="RegisterButton" Content="Register" Style="{StaticResource ButtonStyle}" Click="RegisterButton_Click"></Button>
-
-
             </StackPanel>
         </Grid>
     </Border>

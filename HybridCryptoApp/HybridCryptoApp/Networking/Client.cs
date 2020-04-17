@@ -12,6 +12,16 @@ namespace HybridCryptoApp.Networking
 {
     public static class Client
     {
+        /// <summary>
+        /// Is the user currently logged in
+        /// </summary>
+        public static bool IsLoggedIn { get; private set; } = false;
+
+        /// <summary>
+        /// Name of user who is currently logged in
+        /// </summary>
+        public static string UserName { get; set; } = "";
+
         // relative paths in api
         private const string NewMessagePath = "/api/Message/NewMessage";
         private const string AsReceiverPath = "/api/Message/AsReceiver";
@@ -70,8 +80,11 @@ namespace HybridCryptoApp.Networking
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
-                string token = await response.Content.ReadAsStringAsync();
-                HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                string content = await response.Content.ReadAsStringAsync();
+                LoginResponseModel loginResponse = JsonConvert.DeserializeObject<LoginResponseModel>(content);
+
+                HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", loginResponse.Token);
+                UserName = loginResponse.Name;
             }
             else
             {

@@ -1,9 +1,15 @@
-﻿using System;
+﻿using HybridCryptoApp.Crypto;
+using System;
 
 namespace HybridCryptoApp.Networking.Models
 {
     public class Message : IComparable<Message>
     {
+        /// <summary>
+        /// Datatype in this message
+        /// </summary>
+        public DataType DataType { get; set; }
+
         /// <summary>
         /// Name of sender
         /// </summary>

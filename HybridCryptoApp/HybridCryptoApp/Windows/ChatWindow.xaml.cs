@@ -78,7 +78,8 @@ namespace HybridCryptoApp.Windows
             {
                 SenderName = e.Sender.FirstName + " " + e.Sender.LastName,
                 SendTime = e.SendDateTime,
-                MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(e.EncryptedPacket, AsymmetricEncryption.PublicKeyFromXml(contact.PublicKey)))
+                MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(e.EncryptedPacket, AsymmetricEncryption.PublicKeyFromXml(contact.PublicKey))),
+                DataType = e.DataType
             }));
         }
 
@@ -114,7 +115,8 @@ namespace HybridCryptoApp.Windows
                     {
                         SenderName = sender.UserName,
                         SendTime = packet.SendDateTime,
-                        MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKeyFromXml(sender.PublicKey)))
+                        MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKeyFromXml(sender.PublicKey))),
+                        DataType = packet.DataType
                     });
                 }
             }
@@ -135,7 +137,8 @@ namespace HybridCryptoApp.Windows
                     {
                         SenderName = receiver.UserName,
                         SendTime = packet.SendDateTime,
-                        MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKey, true))
+                        MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKey, true)),
+                        DataType = packet.DataType
                     });
                 }
             }
@@ -166,7 +169,17 @@ namespace HybridCryptoApp.Windows
             // try to send message and clear input
             try
             {
+                // send to server
                 await Client.SendNewMessage(packet, contact.Id);
+
+                // add to chat
+                contact.Messages.Add(new Message()
+                {
+                    SenderName = Client.UserName,
+                    SendTime = DateTime.Now,
+                    MessageFromSender = MessageTextBox.Text,
+                    DataType = DataType.Message
+                });
                 MessageTextBox.Clear();
             }
             catch (ClientException exception)
@@ -210,6 +223,16 @@ namespace HybridCryptoApp.Windows
                 // TODO: show to user
                 MessageBox.Show(exception.Message);
             }
+        }
+
+        /// <summary>
+        /// Decrypt file
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void DownloadButton_Click(object sender, RoutedEventArgs e)
+        {
+            throw new NotImplementedException();
         }
     }
 }
