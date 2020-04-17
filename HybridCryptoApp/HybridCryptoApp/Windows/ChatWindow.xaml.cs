@@ -142,7 +142,7 @@ namespace HybridCryptoApp.Windows
                     {
                         receiver.Messages.Add(new Message()
                         {
-                            SenderName = receiver.UserName,
+                            SenderName = Client.UserName,
                             SendTime = packet.SendDateTime,
                             MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKey, true)),
                             DataType = packet.DataType
