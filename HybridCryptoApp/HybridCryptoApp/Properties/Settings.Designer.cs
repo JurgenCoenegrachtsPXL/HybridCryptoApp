@@ -25,7 +25,7 @@ namespace HybridCryptoApp.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("https://localhost:5001")]
+        [global::System.Configuration.DefaultSettingValueAttribute("https://hybridcryptoapp.gitgudaim.com")]
         public string BaseAddress {
             get {
                 return ((string)(this["BaseAddress"]));

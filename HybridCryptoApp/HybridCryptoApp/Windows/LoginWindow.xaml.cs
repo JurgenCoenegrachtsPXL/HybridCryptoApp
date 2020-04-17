@@ -33,8 +33,8 @@ namespace HybridCryptoApp.Windows
             try
             {
                 // load RSA key
-                AsymmetricEncryption.SelectKeyPair(RSAKeyTextBox.Text, 4096);
-
+                await Task.Run(() => { AsymmetricEncryption.SelectKeyPair(RSAKeyTextBox.Text, 4096); });
+                
                 // log in and wait for at least 1.5s, whichever finishes last
                 List<Task> tasks = new List<Task>();
 

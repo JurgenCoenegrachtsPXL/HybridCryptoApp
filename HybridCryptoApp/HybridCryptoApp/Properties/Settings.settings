@@ -3,7 +3,7 @@
   <Profiles />
   <Settings>
     <Setting Name="BaseAddress" Type="System.String" Scope="User">
-      <Value Profile="(Default)">https://localhost:5001</Value>
+      <Value Profile="(Default)">https://hybridcryptoapp.gitgudaim.com</Value>
     </Setting>
   </Settings>
 </SettingsFile>
