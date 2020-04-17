@@ -42,6 +42,7 @@ namespace HybridCryptoApp.Windows
             DispatcherTimer dispatcherTimer = new DispatcherTimer();
             dispatcherTimer.Interval = TimeSpan.FromSeconds(3);
             dispatcherTimer.Tick += RefreshMessages;
+            dispatcherTimer.Start();
         }
 
         /// <summary>
@@ -176,7 +177,6 @@ namespace HybridCryptoApp.Windows
             DateTime startRequest = DateTime.Now;
 
             List<StrippedDownEncryptedPacket> received = await Client.GetReceivedMessagesAfter(lastUpdated);
-            List<StrippedDownEncryptedPacket> sent = await Client.GetSentMessagesAfter(lastUpdated);
 
             lastUpdated = startRequest;
 
@@ -194,35 +194,6 @@ namespace HybridCryptoApp.Windows
                         MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKeyFromXml(sender.PublicKey))),
                         DataType = packet.DataType
                     });
-                }
-            }
-
-            foreach (StrippedDownEncryptedPacket packet in sent)
-            {
-                // skip if current user is both the sender and receiver
-                if (packet.Receiver.Id == packet.Sender.Id)
-                {
-                    continue;
-                }
-
-                // find receiver in contact list
-                ContactPerson receiver = contactList.FirstOrDefault(c => c.Id == packet.Receiver.Id);
-                if (receiver != null)
-                {
-                    try
-                    {
-                        receiver.Messages.Add(new Message()
-                        {
-                            SenderName = Client.UserName,
-                            SendTime = packet.SendDateTime,
-                            MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKey, true)),
-                            DataType = packet.DataType
-                        });
-                    }
-                    catch (CryptographicException)
-                    {
-
-                    }
                 }
             }
         }
