@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -137,20 +138,27 @@ namespace HybridCryptoApp.Windows
                 ContactPerson receiver = contactList.FirstOrDefault(c => c.Id == packet.Receiver.Id);
                 if (receiver != null)
                 {
-                    receiver.Messages.Add(new Message()
+                    try
                     {
-                        SenderName = receiver.UserName,
-                        SendTime = packet.SendDateTime,
-                        MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKey, true)),
-                        DataType = packet.DataType
-                    });
+                        receiver.Messages.Add(new Message()
+                        {
+                            SenderName = receiver.UserName,
+                            SendTime = packet.SendDateTime,
+                            MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKey, true)),
+                            DataType = packet.DataType
+                        });
+                    }
+                    catch (CryptographicException)
+                    {
+                        
+                    }
                 }
             }
 
             // sort all messages of all contacts
             foreach (ContactPerson contactPerson in contactList.AsEnumerable() ?? Enumerable.Empty<ContactPerson>())
             {
-                CollectionViewSource.GetDefaultView(contactPerson.Messages).SortDescriptions.Add(new SortDescription(nameof(Message.MessageFromSender), ListSortDirection.Ascending));
+                CollectionViewSource.GetDefaultView(contactPerson.Messages).SortDescriptions.Add(new SortDescription(nameof(Message.SendTime), ListSortDirection.Ascending));
             }
         }
 
