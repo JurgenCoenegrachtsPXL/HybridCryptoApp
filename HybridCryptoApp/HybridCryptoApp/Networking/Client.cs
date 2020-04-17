@@ -135,10 +135,11 @@ namespace HybridCryptoApp.Networking
         /// </summary>
         /// <param name="encryptedPacket"></param>
         /// <param name="receiverId"></param>
+        /// <param name="meantForReceiver"></param>
         /// <returns></returns>
-        public static async Task SendNewMessage(EncryptedPacket encryptedPacket, int receiverId)
+        public static async Task SendNewMessage(EncryptedPacket encryptedPacket, int receiverId, bool meantForReceiver = true)
         {
-            HttpContent messageContent = Stringify(new NewEncryptedPacketModel(encryptedPacket, receiverId));
+            HttpContent messageContent = Stringify(new NewEncryptedPacketModel(encryptedPacket, receiverId){MeantForReceiver = meantForReceiver});
 
             // try to send to server
             HttpResponseMessage response;

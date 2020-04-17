@@ -6,6 +6,8 @@ namespace HybridCryptoApp.Networking.Models
     {
         public int ReceiverId { get; set; }
 
+        public bool MeantForReceiver { get; set; } = true;
+
         /// <inheritdoc />
         public NewEncryptedPacketModel()
         {

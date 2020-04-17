@@ -175,18 +175,20 @@ namespace HybridCryptoApp.Windows
                 return;
             }
 
-            EncryptedPacket packet = null;
+            EncryptedPacket packetForReceiver = null, packetForSender = null;
             string text = MessageTextBox.Text;
             await Task.Run(() =>
             {
-                packet = HybridEncryption.Encrypt(DataType.Message, Encoding.UTF8.GetBytes(text), AsymmetricEncryption.PublicKeyFromXml(contact.PublicKey));
+                packetForReceiver = HybridEncryption.Encrypt(DataType.Message, Encoding.UTF8.GetBytes(text), AsymmetricEncryption.PublicKeyFromXml(contact.PublicKey));
+                packetForSender = HybridEncryption.Encrypt(DataType.Message, Encoding.UTF8.GetBytes(text), AsymmetricEncryption.PublicKey);
             });
 
             // try to send message and clear input
             try
             {
                 // send to server
-                await Client.SendNewMessage(packet, contact.Id);
+                await Client.SendNewMessage(packetForReceiver, contact.Id, true);
+                await Client.SendNewMessage(packetForSender, contact.Id, false);
 
                 // add to chat
                 contact.Messages.Add(new Message()
