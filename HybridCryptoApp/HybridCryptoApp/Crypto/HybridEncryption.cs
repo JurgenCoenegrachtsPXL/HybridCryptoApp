@@ -128,6 +128,9 @@ namespace HybridCryptoApp.Crypto
                 // get hash
                 encryptedPacket.Hmac = hashStreamer.Hash;
 
+                // create signature
+                encryptedPacket.Signature = AsymmetricEncryption.Sign(encryptedPacket.Hmac);
+
                 // close file streams
                 inputStream.Close();
             }
@@ -162,6 +165,9 @@ namespace HybridCryptoApp.Crypto
             await outputStream.FlushAsync();
             await outputStream.WriteAsync(new byte[64], 0, 64); // reserve space for hmac
             await outputStream.FlushAsync();
+
+            // TODO: add signature
+
             // create streams
             //using (HashStreamer hashStreamer = new HashStreamer(aesKey))
             {
@@ -216,6 +222,8 @@ namespace HybridCryptoApp.Crypto
             byte[] hmac = new byte[64];
             await inputStream.ReadAsync(hmac, 0, 64);
             await inputStream.FlushAsync();
+
+            // TODO: read signature
 
             // create streamers
             using (HashStreamer hashStreamer = new HashStreamer(aesKey))
