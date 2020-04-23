@@ -110,7 +110,7 @@
 
                     <TextBox Name="MessageTextBox"  Background="#88BACC" Grid.Column="0" Margin="20 0 10 0" MaxHeight="100" TextWrapping="Wrap"  AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
                     <Button Name="SendButton" FontSize="15" Foreground="WhiteSmoke" Style="{StaticResource ButtonStyle}" Background="#637880" Grid.Column="1" Margin="10 0 10 0" VerticalAlignment="Bottom" Click="SendButton_Click">Send</Button>
-                    <Button FontSize="15"  Style="{StaticResource ButtonStyle}"  Grid.Column="2" Margin="10 0 10 0" VerticalAlignment="Bottom">Attachment</Button>
+                    <Button Name="SendAttachmentButton" FontSize="15" Style="{StaticResource ButtonStyle}"  Grid.Column="2" Margin="10 0 10 0" VerticalAlignment="Bottom" Click="SendAttachmentButton_Click">Attachment</Button>
                 </Grid>
             </Border>
         </Grid>

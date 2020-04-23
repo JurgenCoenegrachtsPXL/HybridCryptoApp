@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -13,6 +14,7 @@ using System.Windows.Threading;
 using HybridCryptoApp.Crypto;
 using HybridCryptoApp.Networking;
 using HybridCryptoApp.Networking.Models;
+using Microsoft.Win32;
 
 namespace HybridCryptoApp.Windows
 {
@@ -285,13 +287,75 @@ namespace HybridCryptoApp.Windows
         }
 
         /// <summary>
-        /// Decrypt file
+        /// Decrypt received file
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void DownloadButton_Click(object sender, RoutedEventArgs e)
         {
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Send a file to currently selected user
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private async void SendAttachmentButton_Click(object sender, RoutedEventArgs e)
+        {
+            // get currently selected contact, do nothing if none is selected
+            ContactPerson contact = (ContactPerson)ContactListListView.SelectedItem;
+            if (contact == null)
+            {
+                return;
+            }
+
+            // ask user to select file
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Title = "Choose a file to encrypt";
+            openFileDialog.Multiselect = false;
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                FileStream fileStream;
+                FileInfo fileInfo;
+
+                try
+                {
+                    fileInfo = new FileInfo(openFileDialog.FileName);
+                    MessageBox.Show($"File size {fileInfo.Length} bytes");
+
+                    if (fileInfo.Length / 10_000_000.0 > 10_000_000) // only upload files smaller than 10MB
+                    {
+                        MessageBox.Show("Due to server limitations, files bigger than 10MB (10 000 000 bytes) are not supported.");
+                        return;
+                    }
+
+                    fileStream = new FileStream(openFileDialog.FileName, FileMode.Open, FileAccess.Read);
+
+                    // encrypt file for receiver
+                    EncryptedPacket packetForReceiver = null; //, packetForSender = null;
+                    await Task.Run(() =>
+                    {
+                        packetForReceiver = HybridEncryption.EncryptFile(fileStream, AsymmetricEncryption.PublicKeyFromXml(contact.PublicKey));
+                        //packetForReceiver = HybridEncryption.Encrypt(fileStream, AsymmetricEncryption.PublicKeyFromXml(contact.PublicKey));
+                        //packetForSender = HybridEncryption.Encrypt(DataType.File, Encoding.UTF8.GetBytes(text), AsymmetricEncryption.PublicKey);
+                    });
+
+                    // send to receiver
+                    await Client.SendNewMessage(packetForReceiver, contact.Id);
+                }
+                catch (IOException exception)
+                {
+                    // TODO: show message to user
+                    MessageBox.Show(exception.Message);
+                }
+                catch (ClientException exception)
+                {
+                    // TODO: show message to user
+                    MessageBox.Show(exception.Message);
+                }
+            }
         }
     }
 }
