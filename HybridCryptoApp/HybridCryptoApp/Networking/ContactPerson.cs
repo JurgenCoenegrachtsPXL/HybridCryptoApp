@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Windows.Data;
 using HybridCryptoApp.Networking.Models;
 using HybridCryptoApp.Windows;
 
@@ -18,7 +19,14 @@ namespace HybridCryptoApp.Networking
         public string PublicKey { get; set; }
 
         public ObservableCollection<Message> Messages { get; set; } = new ObservableCollection<Message>();
+        public readonly object LockObject = new object();
+
         public string LastMessage { get; set; }
+
+        public ContactPerson()
+        {
+            BindingOperations.EnableCollectionSynchronization(Messages, LockObject);
+        }
 
         protected bool Equals(ContactPerson other)
         {

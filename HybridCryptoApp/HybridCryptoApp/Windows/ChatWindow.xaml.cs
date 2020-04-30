@@ -30,6 +30,7 @@ namespace HybridCryptoApp.Windows
         private static readonly Regex IdRegex = new Regex(@"^\d+$");
         private DateTime lastUpdated = DateTime.Now;
         private string errorText = "";
+        private readonly object lockObject = new object();
 
         public ChatWindow()
         {
@@ -39,6 +40,8 @@ namespace HybridCryptoApp.Windows
             ContactListListView.ItemsSource = contactList;
 
             ErrorTextBlock.DataContext = this;
+
+            BindingOperations.EnableCollectionSynchronization(contactList, lockObject);
 
             // load all contacts and messages
             new Action(async () => { await RetrieveAll(); })();
@@ -115,34 +118,7 @@ namespace HybridCryptoApp.Windows
             // try to link messages to contacts
             int failedDecryptionCount = await AddReceivedMessages(receivedPackets);
 
-            foreach (StrippedDownEncryptedPacket packet in sentPackets)
-            {
-                // skip if current user is both the sender and receiver
-                if (packet.Receiver.Id == packet.Sender.Id)
-                {
-                    continue;
-                }
-
-                // find receiver in contact list
-                ContactPerson receiver = contactList.FirstOrDefault(c => c.Id == packet.Receiver.Id);
-                if (receiver != null)
-                {
-                    try
-                    {
-                        receiver.Messages.Add(new Message()
-                        {
-                            SenderName = Client.UserName,
-                            SendTime = packet.SendDateTime,
-                            MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKey, true)),
-                            DataType = packet.DataType
-                        });
-                    }
-                    catch (CryptoException)
-                    {
-                        failedDecryptionCount++;
-                    }
-                }
-            }
+            failedDecryptionCount += await AddSentMessages(sentPackets);
 
             // sort all messages of all contacts
             foreach (ContactPerson contactPerson in contactList.AsEnumerable() ?? Enumerable.Empty<ContactPerson>())
@@ -359,7 +335,6 @@ namespace HybridCryptoApp.Windows
         private async Task<int> AddReceivedMessages(IList<StrippedDownEncryptedPacket> received)
         {
             // try to link messages to contacts
-            int failedCount = 0;
             BoxedInt boxedInt = new BoxedInt();
             List<Task> tasks = new List<Task>(received.Count);
 
@@ -379,7 +354,7 @@ namespace HybridCryptoApp.Windows
                                 string message = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKeyFromXml(sender.PublicKey)));
 
                                 // add new message to chat
-                                lock (sender.Messages)
+                                lock (sender.LockObject)
                                 {
                                     sender.Messages.Add(new Message()
                                     {
@@ -436,7 +411,7 @@ namespace HybridCryptoApp.Windows
                         {
                             string message = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKey, true));
 
-                            lock (receiver.Messages)
+                            lock (receiver.LockObject)
                             {
                                 receiver.Messages.Add(new Message()
                                 {
