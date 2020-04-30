@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -30,6 +29,7 @@ namespace HybridCryptoApp.Windows
         private List<StrippedDownEncryptedPacket> sentPackets;
         private static readonly Regex IdRegex = new Regex(@"^\d+$");
         private DateTime lastUpdated = DateTime.Now;
+        private string errorText = "";
 
         public ChatWindow()
         {
@@ -37,6 +37,8 @@ namespace HybridCryptoApp.Windows
 
             DataContext = this;
             ContactListListView.ItemsSource = contactList;
+
+            ErrorTextBlock.DataContext = this;
 
             // load all contacts and messages
             new Action(async () => { await RetrieveAll(); })();
@@ -76,22 +78,15 @@ namespace HybridCryptoApp.Windows
         }
 
         /// <summary>
-        /// 
+        /// Retrieve all messages of a certain contact
         /// </summary>
         /// <param name="contactId"></param>
         /// <returns></returns>
-        private async Task RetrieveMessagesOfContact(int contactId)
+        private async Task<int> RetrieveMessagesOfContact(int contactId)
         {
             List<StrippedDownEncryptedPacket> packets = await Client.MessagesOfContact(contactId);
 
-            ContactPerson contact = contactList.First(c => c.Id == contactId);
-            packets.ForEach(e => contact.Messages.Add(new Message()
-            {
-                SenderName = e.Sender.FirstName + " " + e.Sender.LastName,
-                SendTime = e.SendDateTime,
-                MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(e.EncryptedPacket, AsymmetricEncryption.PublicKeyFromXml(contact.PublicKey))),
-                DataType = e.DataType
-            }));
+            return await AddReceivedMessages(packets);
         }
 
         /// <summary>
@@ -113,26 +108,12 @@ namespace HybridCryptoApp.Windows
             }
             catch (ClientException exception)
             {
-                MessageBox.Show(exception.Message);
+                errorText = exception.Message;
                 return;
             }
 
             // try to link messages to contacts
-            foreach (StrippedDownEncryptedPacket packet in receivedPackets)
-            {
-                // find sender in contact list
-                ContactPerson sender = contactList.FirstOrDefault(c => c.Id == packet.Sender.Id);
-                if (sender != null)
-                {
-                    sender.Messages.Add(new Message()
-                    {
-                        SenderName = sender.UserName,
-                        SendTime = packet.SendDateTime,
-                        MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKeyFromXml(sender.PublicKey))),
-                        DataType = packet.DataType
-                    });
-                }
-            }
+            int failedDecryptionCount = await AddReceivedMessages(receivedPackets);
 
             foreach (StrippedDownEncryptedPacket packet in sentPackets)
             {
@@ -156,9 +137,9 @@ namespace HybridCryptoApp.Windows
                             DataType = packet.DataType
                         });
                     }
-                    catch (CryptographicException)
+                    catch (CryptoException)
                     {
-
+                        failedDecryptionCount++;
                     }
                 }
             }
@@ -168,6 +149,12 @@ namespace HybridCryptoApp.Windows
             {
                 CollectionViewSource.GetDefaultView(contactPerson.Messages).SortDescriptions.Add(new SortDescription(nameof(Message.SendTime), ListSortDirection.Ascending));
             }
+
+            // alert user to possible errors
+            if (failedDecryptionCount > 0)
+            {
+                errorText = $"Failed to decrypt {failedDecryptionCount} message(s).";
+            }
         }
 
         /// <summary>
@@ -176,32 +163,21 @@ namespace HybridCryptoApp.Windows
         /// <returns></returns>
         private async void RefreshMessages(object obj, EventArgs e)
         {
+            // retrieve message from one second before last update
             DateTime startRequest = DateTime.Now;
 
             List<StrippedDownEncryptedPacket> received = await Client.GetReceivedMessagesAfter(lastUpdated.AddSeconds(-1));
 
+            // update to the latest date to avoid requesting (many) duplicates if one packet was slowed down
             lastUpdated = (startRequest > lastUpdated) ? startRequest : lastUpdated;
 
             // try to link messages to contacts
-            foreach (StrippedDownEncryptedPacket packet in received)
+            int failedCount = await AddReceivedMessages(received);
+            
+            // show user if any of these failed
+            if (failedCount > 0)
             {
-                // find sender in contact list
-                ContactPerson sender = contactList.FirstOrDefault(c => c.Id == packet.Sender.Id);
-                if (sender != null)
-                {
-                    // ignore duplicates
-                    if (sender.Messages.All(m => m.SendTime != packet.SendDateTime))
-                    {
-                        // add new message to chat
-                        sender.Messages.Add(new Message()
-                        {
-                            SenderName = sender.UserName,
-                            SendTime = packet.SendDateTime,
-                            MessageFromSender = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKeyFromXml(sender.PublicKey))),
-                            DataType = packet.DataType
-                        });
-                    }
-                }
+                errorText = $"Failed to decrypt {failedCount} message(s) on last refresh";
             }
         }
 
@@ -222,31 +198,41 @@ namespace HybridCryptoApp.Windows
             string text = MessageTextBox.Text;
             await Task.Run(() =>
             {
-                packetForReceiver = HybridEncryption.Encrypt(DataType.Message, Encoding.UTF8.GetBytes(text), AsymmetricEncryption.PublicKeyFromXml(contact.PublicKey));
-                packetForSender = HybridEncryption.Encrypt(DataType.Message, Encoding.UTF8.GetBytes(text), AsymmetricEncryption.PublicKey);
+                try
+                {
+                    packetForReceiver = HybridEncryption.Encrypt(DataType.Message, Encoding.UTF8.GetBytes(text), AsymmetricEncryption.PublicKeyFromXml(contact.PublicKey));
+                    packetForSender = HybridEncryption.Encrypt(DataType.Message, Encoding.UTF8.GetBytes(text), AsymmetricEncryption.PublicKey);
+                }
+                catch (CryptoException exception)
+                {
+                    errorText = exception.Message;
+                }
             });
 
             // try to send message and clear input
-            try
+            if (packetForReceiver != null && packetForSender != null)
             {
-                // send to server
-                await Client.SendNewMessage(packetForReceiver, contact.Id, true);
-                await Client.SendNewMessage(packetForSender, contact.Id, false);
-
-                // add to chat
-                contact.Messages.Add(new Message()
+                try
                 {
-                    SenderName = Client.UserName,
-                    SendTime = DateTime.Now,
-                    MessageFromSender = MessageTextBox.Text,
-                    DataType = DataType.Message
-                });
-                MessageTextBox.Clear();
-            }
-            catch (ClientException exception)
-            {
-                // TODO: show message to user
-                MessageBox.Show(exception.Message);
+                    // send to server
+                    await Client.SendNewMessage(packetForReceiver, contact.Id, true);
+                    await Client.SendNewMessage(packetForSender, contact.Id, false);
+
+                    // add to chat
+                    contact.Messages.Add(new Message()
+                    {
+                        SenderName = Client.UserName,
+                        SendTime = DateTime.Now,
+                        MessageFromSender = MessageTextBox.Text,
+                        DataType = DataType.Message
+                    });
+                    MessageTextBox.Clear();
+                }
+                catch (ClientException exception)
+                {
+                    // show message to user
+                    errorText = exception.Message;
+                }
             }
         }
 
@@ -281,8 +267,8 @@ namespace HybridCryptoApp.Windows
             }
             catch (ClientException exception)
             {
-                // TODO: show to user
-                MessageBox.Show(exception.Message);
+                // show to user
+                errorText = exception.Message;
             }
         }
 
@@ -323,11 +309,10 @@ namespace HybridCryptoApp.Windows
                 try
                 {
                     fileInfo = new FileInfo(openFileDialog.FileName);
-                    MessageBox.Show($"File size {fileInfo.Length} bytes");
 
-                    if (fileInfo.Length / 10_000_000.0 > 10_000_000) // only upload files smaller than 10MB
+                    if (fileInfo.Length > 10_000_000) // only upload files smaller than 10MB
                     {
-                        MessageBox.Show("Due to server limitations, files bigger than 10MB (10 000 000 bytes) are not supported.");
+                        errorText = "Due to server limitations, files bigger than 10MB (10 000 000 bytes) are not supported.";
                         return;
                     }
 
@@ -337,9 +322,17 @@ namespace HybridCryptoApp.Windows
                     EncryptedPacket packetForReceiver = null; //, packetForSender = null;
                     await Task.Run(() =>
                     {
-                        packetForReceiver = HybridEncryption.EncryptFile(fileStream, AsymmetricEncryption.PublicKeyFromXml(contact.PublicKey));
-                        //packetForReceiver = HybridEncryption.Encrypt(fileStream, AsymmetricEncryption.PublicKeyFromXml(contact.PublicKey));
-                        //packetForSender = HybridEncryption.Encrypt(DataType.File, Encoding.UTF8.GetBytes(text), AsymmetricEncryption.PublicKey);
+                        try
+                        {
+                            packetForReceiver = HybridEncryption.EncryptFile(fileStream, AsymmetricEncryption.PublicKeyFromXml(contact.PublicKey));
+                            //packetForReceiver = HybridEncryption.Encrypt(fileStream, AsymmetricEncryption.PublicKeyFromXml(contact.PublicKey));
+                            //packetForSender = HybridEncryption.Encrypt(DataType.File, Encoding.UTF8.GetBytes(text), AsymmetricEncryption.PublicKey);
+                        }
+                        catch (CryptoException exception)
+                        {
+                            // show to user
+                            errorText = exception.Message;
+                        }
                     });
 
                     // send to receiver
@@ -347,15 +340,136 @@ namespace HybridCryptoApp.Windows
                 }
                 catch (IOException exception)
                 {
-                    // TODO: show message to user
-                    MessageBox.Show(exception.Message);
+                    // show to user
+                    errorText = exception.Message;
                 }
                 catch (ClientException exception)
                 {
-                    // TODO: show message to user
-                    MessageBox.Show(exception.Message);
+                    // show to user
+                    errorText = exception.Message;
                 }
             }
+        }
+
+        /// <summary>
+        /// Add received messages from list of packets
+        /// </summary>
+        /// <param name="received"></param>
+        /// <returns>Amount of packages which failed to be decrypted</returns>
+        private async Task<int> AddReceivedMessages(IList<StrippedDownEncryptedPacket> received)
+        {
+            // try to link messages to contacts
+            int failedCount = 0;
+            BoxedInt boxedInt = new BoxedInt();
+            List<Task> tasks = new List<Task>(received.Count);
+
+            foreach (StrippedDownEncryptedPacket packet in received)
+            {
+                // find sender in contact list
+                tasks.Add(Task.Run(() =>
+                {
+                    ContactPerson sender = contactList.FirstOrDefault(c => c.Id == packet.Sender.Id);
+                    if (sender != null)
+                    {
+                        // ignore duplicates
+                        if (sender.Messages.All(m => m.SendTime != packet.SendDateTime))
+                        {
+                            try
+                            {
+                                string message = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKeyFromXml(sender.PublicKey)));
+
+                                // add new message to chat
+                                lock (sender.Messages)
+                                {
+                                    sender.Messages.Add(new Message()
+                                    {
+                                        SenderName = sender.UserName,
+                                        SendTime = packet.SendDateTime,
+                                        MessageFromSender = message,
+                                        DataType = packet.DataType
+                                    });
+                                }
+                            }
+                            catch (CryptoException)
+                            {
+                                lock (boxedInt)
+                                {
+                                    boxedInt.Integer++;
+                                }
+                            }
+                        }
+                    }
+                }));
+            }
+
+            await Task.WhenAll(tasks);
+
+            return boxedInt.Integer;
+        }
+
+        /// <summary>
+        /// Add sent messages from list of packets
+        /// </summary>
+        /// <param name="sent"></param>
+        /// <returns>Amount of packages which failed to be decrypted</returns>
+        private async Task<int> AddSentMessages(IList<StrippedDownEncryptedPacket> sent)
+        {
+            // try to link messages to contacts
+            BoxedInt boxedInt = new BoxedInt();
+            List<Task> tasks = new List<Task>(sent.Count);
+
+            foreach (StrippedDownEncryptedPacket packet in sentPackets)
+            {
+                // skip if current user is both the sender and receiver
+                if (packet.Receiver.Id == packet.Sender.Id)
+                {
+                    continue;
+                }
+
+                tasks.Add(Task.Run(() =>
+                {
+                    // find receiver in contact list
+                    ContactPerson receiver = contactList.FirstOrDefault(c => c.Id == packet.Receiver.Id);
+                    if (receiver != null)
+                    {
+                        try
+                        {
+                            string message = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKey, true));
+
+                            lock (receiver.Messages)
+                            {
+                                receiver.Messages.Add(new Message()
+                                {
+                                    SenderName = Client.UserName,
+                                    SendTime = packet.SendDateTime,
+                                    MessageFromSender = message,
+                                    DataType = packet.DataType
+                                });
+                            }
+                        }
+                        catch (CryptoException)
+                        {
+                            lock (boxedInt)
+                            {
+                                boxedInt.Integer++;
+                            }
+                        }
+                    }
+                }));
+            }
+
+            // wait for all to finish
+            await Task.WhenAll(tasks);
+
+            return boxedInt.Integer;
+        }
+
+        /// <summary>
+        /// Simply put an object around an integer
+        /// </summary>
+        private class BoxedInt
+        {
+            public int Integer { get; set; }
         }
     }
 }
