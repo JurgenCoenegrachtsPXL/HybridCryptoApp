@@ -17,6 +17,7 @@ namespace HybridCryptoApp.Crypto
         /// <param name="type">Type of data</param>
         /// <param name="data">Data to be encrypted</param>
         /// <param name="publicKey">Public key of receiver</param>
+        /// <exception cref="CryptoException"></exception>
         /// <returns>EncryptedPacket with all info for receiver to decrypt</returns>
         public static EncryptedPacket Encrypt(DataType type, byte[] data, RSAParameters publicKey)
         {
@@ -27,16 +28,50 @@ namespace HybridCryptoApp.Crypto
             byte[] iv = Random.GetNumbers(16);
 
             // encrypt AES session key with RSA
-            byte[] encryptedSessionKey = AsymmetricEncryption.Encrypt(sessionKey, publicKey);
+            byte[] encryptedSessionKey;
+            try
+            {
+                encryptedSessionKey = AsymmetricEncryption.Encrypt(sessionKey, publicKey);
+            }
+            catch (CryptographicException e)
+            {
+                throw new CryptoException("Error while encrypting AES session key", e);
+            }
 
             // encrypt data with AES
-            byte[] encryptedData = SymmetricEncryption.Encrypt(data, sessionKey, iv);
+            byte[] encryptedData;
+            try
+            {
+                encryptedData = SymmetricEncryption.Encrypt(data, sessionKey, iv);
+            }
+            catch (CryptographicException e)
+            {
+                throw new CryptoException("Error while encryting data", e);
+            }
+
 
             // generate hash of encrypted data with session key
-            byte[] hash = Hashing.HmacSha(encryptedData, sessionKey);
+            byte[] hash;
+            try
+            {
+                hash = Hashing.HmacSha(encryptedData, sessionKey);
+            }
+            catch (CryptographicException e)
+            {
+                throw new CryptoException("Error while hashing data", e);
+            }
+
 
             // generate signature using hash
-            byte[] signature = AsymmetricEncryption.Sign(hash);
+            byte[] signature;
+            try
+            {
+                signature = AsymmetricEncryption.Sign(hash);
+            }
+            catch (CryptographicException e)
+            {
+                throw new CryptoException("Error while creating signature", e);
+            }
 
             // put all info into new EncryptedPacket
             var encryptedPacket = new EncryptedPacket
@@ -50,6 +85,7 @@ namespace HybridCryptoApp.Crypto
             };
 
             return encryptedPacket;
+            
         }
 
         /// <summary>
@@ -58,14 +94,31 @@ namespace HybridCryptoApp.Crypto
         /// <param name="encryptedPacket">Packet containing data</param>
         /// <param name="publicKey">Public RSA key of sender</param>
         /// <param name="skipSignature"></param>
+        /// <exception cref="CryptoException"></exception>
         /// <returns>Decrypted data of packet</returns>
         public static byte[] Decrypt(EncryptedPacket encryptedPacket, RSAParameters publicKey, bool skipSignature = false)
         {
 			// decrypt AES session key with private RSA key
-            byte[] sessionKey = AsymmetricEncryption.Decrypt(encryptedPacket.EncryptedSessionKey);
+            byte[] sessionKey;
+            try
+            {
+                sessionKey = AsymmetricEncryption.Decrypt(encryptedPacket.EncryptedSessionKey);
+            }
+            catch (CryptographicException e)
+            {
+                throw new CryptoException("Error while decryption AES session key", e);
+            }
 
             // rehash data with session key
-            byte[] hashedData = Hashing.HmacSha(encryptedPacket.EncryptedData, sessionKey);
+            byte[] hashedData;
+            try
+            {
+                hashedData = Hashing.HmacSha(encryptedPacket.EncryptedData, sessionKey);
+            }
+            catch (CryptographicException e)
+            {
+                throw new CryptoException("Error while hashing data", e);
+            }
 
             // check hash
             bool checkedHash = Hashing.CompareHashes(hashedData, encryptedPacket.Hmac);
@@ -78,7 +131,15 @@ namespace HybridCryptoApp.Crypto
             // check signature if required
             if (!skipSignature)
             {
-                bool checkedSignature = AsymmetricEncryption.CheckSignature(encryptedPacket.Signature, publicKey, encryptedPacket.Hmac);
+                bool checkedSignature;
+                try
+                {
+                    checkedSignature = AsymmetricEncryption.CheckSignature(encryptedPacket.Signature, publicKey, encryptedPacket.Hmac);
+                }
+                catch (CryptographicException e)
+                {
+                    throw new CryptoException("Error while checking signature", e);
+                }
 
                 if (!checkedSignature)
                 {
@@ -87,10 +148,14 @@ namespace HybridCryptoApp.Crypto
             }
             
             // decrypt data with AES key and IV
-            byte[] decryptedData =
-                SymmetricEncryption.Decrypt(encryptedPacket.EncryptedData, sessionKey, encryptedPacket.Iv);
-
-            return decryptedData;
+            try
+            {
+                return SymmetricEncryption.Decrypt(encryptedPacket.EncryptedData, sessionKey, encryptedPacket.Iv);
+            }
+            catch (CryptographicException e)
+            {
+                throw new CryptoException("Error while decrypting data", e);
+            }
         }
 
         /// <summary>
