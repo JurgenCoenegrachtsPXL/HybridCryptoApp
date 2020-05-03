@@ -5,6 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:HybridCryptoApp.Windows"
         xmlns:networking="clr-namespace:HybridCryptoApp.Networking"
+        xmlns:models="clr-namespace:HybridCryptoApp.Networking.Models"
+        xmlns:enum="clr-namespace:HybridCryptoApp.Crypto"
         mc:Ignorable="d"
         Title="ChatScreen" Height="600" Width="1080">
     <Window.Resources>
@@ -33,7 +35,7 @@
         
         <Style x:Key="ConditionalStyle" TargetType="Label">
             <Style.Triggers>
-                <DataTrigger Binding="{Binding Path=DataType}" Value="File">
+                <DataTrigger Binding="{Binding Path=DataType}" Value="{x:Static enum:DataType.File}">
                     <Setter Property="Foreground" Value="Red" />
                     <Setter Property="Content" >
                         <Setter.Value>
@@ -44,12 +46,12 @@
                         </Setter.Value>
                     </Setter>
                 </DataTrigger>
-                
-                <DataTrigger Binding="{Binding Path=DataType}" Value="Message">
+
+                <DataTrigger Binding="{Binding Path=DataType}" Value="{x:Static enum:DataType.Message}">
                     <Setter Property="Content">
                         <Setter.Value>
                             <StackPanel>
-                                <Label Content="{Binding Path=MessageFromSender, RelativeSource={RelativeSource Mode=TemplatedParent}}"/>
+                                <TextBlock Text="{Binding Path=MessageFromSender}"/>
                             </StackPanel>
                         </Setter.Value>
                     </Setter>
@@ -94,7 +96,38 @@
 
                             <TextBlock Margin="0 0 20 0" Text="{Binding SendTime, StringFormat=HH:mm:ss}" Grid.Column="0"></TextBlock>
                             <TextBlock Margin="0 0 20 0" Text="{Binding SenderName}"  Grid.Column="1"></TextBlock>
-                            <TextBlock Text="{Binding MessageFromSender}" Grid.Column="2"></TextBlock>
+
+                            <!--<TextBlock Grid.Column="2" Text="{Binding DataType}"></TextBlock>-->
+
+                          <!--FILE -->
+                            <TextBlock Text="{Binding MessageFromSender}" Grid.Column="2">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding DataType}" Value="{x:Static enum:DataType.File}"> <!--als het file is, moet het op hidden staan -->
+                                                <Setter Property="Visibility" Value="Collapsed"></Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+
+                          <!--MESSAGE -->
+                            <StackPanel Grid.Column="2">
+                                <StackPanel.Style>
+                                    <Style TargetType="StackPanel">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding DataType}" Value="{x:Static enum:DataType.Message}"> <!--als het message is, moet het op hidden staan -->
+                                                <Setter Property="Visibility" Value="Collapsed"></Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </StackPanel.Style>
+
+                                <TextBlock Text="Has sent a file" />
+                                <Button Name="DownloadButton" Content="Download" Style="{DynamicResource DownloadButtonStyle}"></Button>
+                            </StackPanel>
+
                         </Grid>
                     </DataTemplate>
                 </ListView.ItemTemplate>
@@ -113,7 +146,7 @@
                     <Button Name="SendAttachmentButton" FontSize="15" Style="{StaticResource ButtonStyle}"  Grid.Column="2" Margin="10 0 10 0" VerticalAlignment="Bottom" Click="SendAttachmentButton_Click">Attachment</Button>
                 </Grid>
             </Border>
-            <TextBlock Name="ErrorTextBlock" Grid.Row="2" Text="{Binding errorText}" Margin="20,10" Foreground="Red" VerticalAlignment="Bottom"/>
+            <TextBlock Name="ErrorTextBlock" Grid.Row="2" Text="{Binding ErrorText}" Margin="20,10" Foreground="Red" VerticalAlignment="Bottom"/>
         </Grid>
 
         <StackPanel Grid.Column="0" Background="WhiteSmoke">

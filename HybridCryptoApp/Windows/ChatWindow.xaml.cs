@@ -29,8 +29,8 @@ namespace HybridCryptoApp.Windows
         private List<StrippedDownEncryptedPacket> sentPackets;
         private static readonly Regex IdRegex = new Regex(@"^\d+$");
         private DateTime lastUpdated = DateTime.Now;
-        private string errorText = "";
-        private readonly object lockObject = new object();
+        public string ErrorText { get; private set; } = "";
+        private static readonly object lockObject = new object();
 
         public ChatWindow()
         {
@@ -44,7 +44,14 @@ namespace HybridCryptoApp.Windows
             BindingOperations.EnableCollectionSynchronization(contactList, lockObject);
 
             // load all contacts and messages
-            new Action(async () => { await RetrieveAll(); })();
+            //new Action(async () => { await RetrieveAll(); })();
+            /*
+             Task.Run(async () =>
+            {
+                await RetrieveAll();
+            }).Wait();
+            */
+            RetrieveAll().ConfigureAwait(false);
 
             DispatcherTimer dispatcherTimer = new DispatcherTimer();
             dispatcherTimer.Interval = TimeSpan.FromSeconds(3);
@@ -111,7 +118,7 @@ namespace HybridCryptoApp.Windows
             }
             catch (ClientException exception)
             {
-                errorText = exception.Message;
+                ErrorText = exception.Message;
                 return;
             }
 
@@ -129,7 +136,7 @@ namespace HybridCryptoApp.Windows
             // alert user to possible errors
             if (failedDecryptionCount > 0)
             {
-                errorText = $"Failed to decrypt {failedDecryptionCount} message(s).";
+                ErrorText = $"Failed to decrypt {failedDecryptionCount} message(s).";
             }
         }
 
@@ -153,7 +160,7 @@ namespace HybridCryptoApp.Windows
             // show user if any of these failed
             if (failedCount > 0)
             {
-                errorText = $"Failed to decrypt {failedCount} message(s) on last refresh";
+                ErrorText = $"Failed to decrypt {failedCount} message(s) on last refresh";
             }
         }
 
@@ -181,7 +188,7 @@ namespace HybridCryptoApp.Windows
                 }
                 catch (CryptoException exception)
                 {
-                    errorText = exception.Message;
+                    ErrorText = exception.Message;
                 }
             });
 
@@ -207,7 +214,7 @@ namespace HybridCryptoApp.Windows
                 catch (ClientException exception)
                 {
                     // show message to user
-                    errorText = exception.Message;
+                    ErrorText = exception.Message;
                 }
             }
         }
@@ -244,7 +251,7 @@ namespace HybridCryptoApp.Windows
             catch (ClientException exception)
             {
                 // show to user
-                errorText = exception.Message;
+                ErrorText = exception.Message;
             }
         }
 
@@ -288,7 +295,7 @@ namespace HybridCryptoApp.Windows
 
                     if (fileInfo.Length > 10_000_000) // only upload files smaller than 10MB
                     {
-                        errorText = "Due to server limitations, files bigger than 10MB (10 000 000 bytes) are not supported.";
+                        ErrorText = "Due to server limitations, files bigger than 10MB (10 000 000 bytes) are not supported.";
                         return;
                     }
 
@@ -307,7 +314,7 @@ namespace HybridCryptoApp.Windows
                         catch (CryptoException exception)
                         {
                             // show to user
-                            errorText = exception.Message;
+                            ErrorText = exception.Message;
                         }
                     });
 
@@ -317,12 +324,12 @@ namespace HybridCryptoApp.Windows
                 catch (IOException exception)
                 {
                     // show to user
-                    errorText = exception.Message;
+                    ErrorText = exception.Message;
                 }
                 catch (ClientException exception)
                 {
                     // show to user
-                    errorText = exception.Message;
+                    ErrorText = exception.Message;
                 }
             }
         }
@@ -349,27 +356,43 @@ namespace HybridCryptoApp.Windows
                         // ignore duplicates
                         if (sender.Messages.All(m => m.SendTime != packet.SendDateTime))
                         {
-                            try
+                            if (packet.DataType == DataType.Message)
                             {
-                                string message = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKeyFromXml(sender.PublicKey)));
+                                try
+                                {
+                                    string message = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKeyFromXml(sender.PublicKey)));
 
-                                // add new message to chat
+                                    // add new message to chat
+                                    lock (sender.LockObject)
+                                    {
+                                        sender.Messages.Add(new Message()
+                                        {
+                                            SenderName = sender.UserName,
+                                            SendTime = packet.SendDateTime,
+                                            MessageFromSender = message,
+                                            DataType = packet.DataType
+                                        });
+                                    }
+                                }
+                                catch (CryptoException)
+                                {
+                                    lock (boxedInt)
+                                    {
+                                        boxedInt.Integer++;
+                                    }
+                                }
+                            }
+                            else
+                            {
                                 lock (sender.LockObject)
                                 {
                                     sender.Messages.Add(new Message()
                                     {
                                         SenderName = sender.UserName,
                                         SendTime = packet.SendDateTime,
-                                        MessageFromSender = message,
+                                        MessageFromSender = $"This is a {packet.DataType}",
                                         DataType = packet.DataType
                                     });
-                                }
-                            }
-                            catch (CryptoException)
-                            {
-                                lock (boxedInt)
-                                {
-                                    boxedInt.Integer++;
                                 }
                             }
                         }
@@ -407,26 +430,42 @@ namespace HybridCryptoApp.Windows
                     ContactPerson receiver = contactList.FirstOrDefault(c => c.Id == packet.Receiver.Id);
                     if (receiver != null)
                     {
-                        try
+                        if (packet.DataType == DataType.Message)
                         {
-                            string message = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKey, true));
+                            try
+                            {
+                                string message = Encoding.UTF8.GetString(HybridEncryption.Decrypt(packet.EncryptedPacket, AsymmetricEncryption.PublicKey, true));
 
+                                lock (receiver.LockObject)
+                                {
+                                    receiver.Messages.Add(new Message()
+                                    {
+                                        SenderName = Client.UserName,
+                                        SendTime = packet.SendDateTime,
+                                        MessageFromSender = message,
+                                        DataType = packet.DataType
+                                    });
+                                }
+                            }
+                            catch (CryptoException)
+                            {
+                                lock (boxedInt)
+                                {
+                                    boxedInt.Integer++;
+                                }
+                            }
+                        }
+                        else
+                        {
                             lock (receiver.LockObject)
                             {
                                 receiver.Messages.Add(new Message()
                                 {
-                                    SenderName = Client.UserName,
+                                    SenderName = receiver.UserName,
                                     SendTime = packet.SendDateTime,
-                                    MessageFromSender = message,
+                                    MessageFromSender = $"This is a {packet.DataType}",
                                     DataType = packet.DataType
                                 });
-                            }
-                        }
-                        catch (CryptoException)
-                        {
-                            lock (boxedInt)
-                            {
-                                boxedInt.Integer++;
                             }
                         }
                     }
