@@ -142,7 +142,7 @@ namespace HybridCryptoApp.Windows
                     inputStream = File.OpenRead(originalFile);
                     outputStream = File.OpenWrite(decryptedFile);
 
-                    bool succeeded = await HybridEncryption.DecryptFile(inputStream, outputStream);
+                    bool succeeded = await HybridEncryption.DecryptFile(inputStream, outputStream, AsymmetricEncryption.PublicKeyFromXml(PublicRSAKeyReceiver.Text));
                     if (succeeded)
                     {
                         StatusImage.Visibility = Visibility.Visible;
@@ -318,7 +318,7 @@ namespace HybridCryptoApp.Windows
                     inputStream = File.OpenRead(originalFile);
                     outputStream = new MemoryStream();
 
-                    bool succeeded = await HybridEncryption.DecryptFile(inputStream, outputStream);
+                    bool succeeded = await HybridEncryption.DecryptFile(inputStream, outputStream, AsymmetricEncryption.PublicKeyFromXml(PublicRSAKeyReceiver.Text));
                     if (succeeded)
                     {
                         StatusImage.Visibility = Visibility.Visible;

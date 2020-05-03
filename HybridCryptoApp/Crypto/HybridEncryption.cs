@@ -231,7 +231,9 @@ namespace HybridCryptoApp.Crypto
             await outputStream.WriteAsync(new byte[64], 0, 64); // reserve space for hmac
             await outputStream.FlushAsync();
 
-            // TODO: add signature
+            int signatureLength = publicKey.Modulus.Length;
+            await outputStream.WriteAsync(new byte[signatureLength], 0, signatureLength); // reserve space for signature
+            await outputStream.FlushAsync();
 
             // create streams
             //using (HashStreamer hashStreamer = new HashStreamer(aesKey))
@@ -241,15 +243,21 @@ namespace HybridCryptoApp.Crypto
                 {
                     var hmacStream = hashStreamer.HmacShaStream(outputStream, aesKey, CryptoStreamMode.Write);
                     var encryptedStream = symmetricStreamer.EncryptStream(hmacStream, CryptoStreamMode.Write);
-                    outputStream.SetLength(firstData.Count + 64);
-                    outputStream.Position = firstData.Count + 64;
+                    outputStream.SetLength(firstData.Count + 64 + signatureLength);
+                    outputStream.Position = firstData.Count + 64 + signatureLength;
 
                     await inputStream.CopyToAsync(encryptedStream);
 
                     // write hash in front of file
                     outputStream.Position = 0;
                     await outputStream.WriteAsync(firstData.ToArray(), 0, firstData.Count);
-                    await outputStream.WriteAsync(hashStreamer.Hash, 0, 64);
+                    byte[] hash = hashStreamer.Hash;
+                    await outputStream.WriteAsync(hash, 0, 64);
+                    
+                    // write signature in front of file
+                    await outputStream.WriteAsync(AsymmetricEncryption.Sign(hash), 0, signatureLength);
+
+                    // flush it all the way
                     await outputStream.FlushAsync();
                     
                     return outputStream.Length;
@@ -262,7 +270,8 @@ namespace HybridCryptoApp.Crypto
         /// </summary>
         /// <param name="inputStream">File to read encrypted packet from</param>
         /// <param name="outputStream">File to write decrypted data to</param>
-        public static async Task<bool> DecryptFile(Stream inputStream, Stream outputStream)
+        /// <param name="publicKey">Public key of sender</param>
+        public static async Task<bool> DecryptFile(Stream inputStream, Stream outputStream, RSAParameters publicKey)
         {
             inputStream.Position = 0;
             DataType dataType = (DataType)inputStream.ReadByte();
@@ -288,7 +297,17 @@ namespace HybridCryptoApp.Crypto
             await inputStream.ReadAsync(hmac, 0, 64);
             await inputStream.FlushAsync();
 
-            // TODO: read signature
+            // read signature
+            int signatureLength = AsymmetricEncryption.PublicKey.Modulus.Length;
+            byte[] signature = new byte[signatureLength];
+            await inputStream.ReadAsync(signature, 0, signatureLength);
+            await inputStream.FlushAsync();
+
+            // check signature
+            if (!AsymmetricEncryption.CheckSignature(signature, publicKey, hmac))
+            {
+                throw new CryptoException("Signature check failed, file could have been sent by somebody else!");
+            }
 
             // create streamers
             using (HashStreamer hashStreamer = new HashStreamer(aesKey))

@@ -217,7 +217,7 @@ namespace HybridCryptoApp.Tests.Crypto
             encryptedBytes.Position = 0;
 
             MemoryStream decryptedStream = new MemoryStream();
-            bool hashOk = await HybridEncryption.DecryptFile(encryptedBytes, decryptedStream);
+            bool hashOk = await HybridEncryption.DecryptFile(encryptedBytes, decryptedStream, asymmetricPublicKey);
 
             decryptedStream.Position = 0;
             byte[] decryptedBytes = decryptedStream.ToArray();
@@ -240,7 +240,7 @@ namespace HybridCryptoApp.Tests.Crypto
             encryptedBytes.Position = 0;
 
             MemoryStream decryptedStream = new MemoryStream();
-            bool hashOk = await HybridEncryption.DecryptFile(encryptedBytes, decryptedStream);
+            bool hashOk = await HybridEncryption.DecryptFile(encryptedBytes, decryptedStream, asymmetricPublicKey);
 
             decryptedStream.Position = 0;
             byte[] decryptedBytes = decryptedStream.ToArray();
