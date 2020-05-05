@@ -6,8 +6,7 @@ namespace HybridCryptoApp.Crypto.Streamable
 {
     public class SymmetricStreamer : IDisposable
     {
-        private CryptoStream outputStream;
-        private AesCryptoServiceProvider aes;
+        private readonly AesCryptoServiceProvider aes;
 
         /// <summary>
         /// 
@@ -27,8 +26,7 @@ namespace HybridCryptoApp.Crypto.Streamable
         /// <returns></returns>
         public CryptoStream EncryptStream(Stream inputStream, CryptoStreamMode cryptoStreamMode)
         {
-            outputStream = new CryptoStream(inputStream, aes.CreateEncryptor(), cryptoStreamMode);
-            return outputStream;
+            return new CryptoStream(inputStream, aes.CreateEncryptor(), cryptoStreamMode);
         }
 
         /// <summary>
@@ -39,8 +37,7 @@ namespace HybridCryptoApp.Crypto.Streamable
         /// <returns></returns>
         public CryptoStream DecryptStream(Stream inputStream, CryptoStreamMode cryptoStreamMode)
         {
-            outputStream = new CryptoStream(inputStream, aes.CreateDecryptor(), cryptoStreamMode);
-            return outputStream;
+            return new CryptoStream(inputStream, aes.CreateDecryptor(), cryptoStreamMode);
         }
 
         /// <summary>

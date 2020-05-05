@@ -10,6 +10,8 @@ namespace HybridCryptoApp.Networking.Models
         /// </summary>
         public DataType DataType { get; set; }
 
+        public ContactPerson Sender { get; set; }
+
         /// <summary>
         /// Name of sender
         /// </summary>
@@ -25,11 +27,24 @@ namespace HybridCryptoApp.Networking.Models
         /// </summary>
         public string MessageFromSender { get; set; }
 
+        /// <summary>
+        /// Original packet
+        /// </summary>
+        public StrippedDownEncryptedPacket Packet { get; set; }
+
         /// <inheritdoc />
         public int CompareTo(Message other)
         {
-            if (ReferenceEquals(this, other)) return 0;
-            if (ReferenceEquals(null, other)) return 1;
+            if (ReferenceEquals(this, other))
+            {
+                return 0;
+            }
+
+            if (ReferenceEquals(null, other))
+            {
+                return 1;
+            }
+
             return SendTime.CompareTo(other.SendTime);
         }
     }

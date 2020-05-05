@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Threading;
 using HybridCryptoApp.Crypto;
@@ -260,9 +261,65 @@ namespace HybridCryptoApp.Windows
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void DownloadButton_Click(object sender, RoutedEventArgs e)
+        private async void DownloadButton_Click(object sender, RoutedEventArgs e)
         {
-            throw new NotImplementedException();
+            // TODO: select a place to save
+            SaveFileDialog saveFileDialog = new SaveFileDialog
+            {
+                Title = "Save as"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                FileStream outputStream = null;
+                MemoryStream memoryStream = null;
+
+                try
+                {
+                    outputStream = new FileStream(saveFileDialog.FileName, FileMode.CreateNew, FileAccess.Write);
+
+                    if (sender is Button button)
+                    {
+                        if (button.DataContext is Message message)
+                        {
+                            // convert packet to memoryStream
+                            memoryStream = new MemoryStream(message.Packet.EncryptedData.Length + 2_000);
+
+                            memoryStream.Write(new byte[] {(byte) message.Packet.DataType}, 0, 1);
+
+                            memoryStream.Write(BitConverter.GetBytes((ushort) message.Packet.EncryptedSessionKey.Length), 0, 2);
+                            memoryStream.Write(message.Packet.EncryptedSessionKey, 0, message.Packet.EncryptedSessionKey.Length);
+
+                            memoryStream.Write(message.Packet.Iv, 0, message.Packet.Iv.Length);
+                            memoryStream.Write(message.Packet.Hmac, 0, message.Packet.Hmac.Length);
+                            memoryStream.Write(message.Packet.Signature, 0, message.Packet.Signature.Length);
+                            await memoryStream.WriteAsync(message.Packet.EncryptedData, 0, message.Packet.EncryptedData.Length).ConfigureAwait(false);
+
+                            try
+                            {
+                                await HybridEncryption.DecryptFile(memoryStream, outputStream, AsymmetricEncryption.PublicKeyFromXml(message.Sender.PublicKey)).ConfigureAwait(false);
+                                await outputStream.FlushAsync().ConfigureAwait(false);
+                            }
+                            catch (CryptoException exception)
+                            {
+                                ErrorText = exception.Message;
+                                MessageBox.Show(exception.Message);
+                            }
+                        }
+                    }
+
+                    
+                }
+                catch (IOException exception)
+                {
+                    MessageBox.Show(exception.Message);
+                }
+                finally
+                {
+                    outputStream?.Close();
+                    memoryStream?.Close();
+                }
+            }
         }
 
         /// <summary>
@@ -370,7 +427,9 @@ namespace HybridCryptoApp.Windows
                                             SenderName = sender.UserName,
                                             SendTime = packet.SendDateTime,
                                             MessageFromSender = message,
-                                            DataType = packet.DataType
+                                            DataType = packet.DataType,
+                                            Packet = packet,
+                                            Sender = sender
                                         });
                                     }
                                 }
@@ -391,7 +450,9 @@ namespace HybridCryptoApp.Windows
                                         SenderName = sender.UserName,
                                         SendTime = packet.SendDateTime,
                                         MessageFromSender = $"This is a {packet.DataType}",
-                                        DataType = packet.DataType
+                                        DataType = packet.DataType,
+                                        Packet = packet,
+                                        Sender = sender
                                     });
                                 }
                             }
@@ -443,7 +504,8 @@ namespace HybridCryptoApp.Windows
                                         SenderName = Client.UserName,
                                         SendTime = packet.SendDateTime,
                                         MessageFromSender = message,
-                                        DataType = packet.DataType
+                                        DataType = packet.DataType,
+                                        Packet = packet,
                                     });
                                 }
                             }
@@ -464,7 +526,8 @@ namespace HybridCryptoApp.Windows
                                     SenderName = receiver.UserName,
                                     SendTime = packet.SendDateTime,
                                     MessageFromSender = $"This is a {packet.DataType}",
-                                    DataType = packet.DataType
+                                    DataType = packet.DataType,
+                                    Packet = packet
                                 });
                             }
                         }

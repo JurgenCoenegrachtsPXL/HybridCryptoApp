@@ -15,12 +15,12 @@ namespace HybridCryptoApp.Networking
         /// <summary>
         /// Is the user currently logged in
         /// </summary>
-        public static bool IsLoggedIn { get; private set; } = false;
+        public static bool IsLoggedIn { get; private set; }
 
         /// <summary>
         /// Name of user who is currently logged in
         /// </summary>
-        public static string UserName { get; set; } = "";
+        public static string UserName { get; private set; } = "";
 
         // relative paths in api
         private const string NewMessagePath = "/api/Message/NewMessage";
@@ -40,7 +40,7 @@ namespace HybridCryptoApp.Networking
 
         private static readonly HttpClient HttpClient = new HttpClient()
         {
-            BaseAddress = new Uri(Properties.Settings.Default.BaseAddress)
+            BaseAddress = new Uri(BaseAddress)
         };
 
         /// <summary>
@@ -48,6 +48,8 @@ namespace HybridCryptoApp.Networking
         /// </summary>
         public static string BaseAddress
         {
+            get => Properties.Settings.Default.BaseAddress;
+
             set
             {
                 Uri newAddress = new Uri(value);
@@ -87,6 +89,7 @@ namespace HybridCryptoApp.Networking
 
                 HttpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", loginResponse.Token);
                 UserName = loginResponse.Name;
+                IsLoggedIn = true;
             }
             else
             {

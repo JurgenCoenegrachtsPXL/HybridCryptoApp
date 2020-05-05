@@ -8,7 +8,7 @@ using System.Windows;
 
 namespace HybridCryptoApp.Crypto
 {
-    public class Random
+    public static class Random
     {
         /// <summary>
         /// Create an array of random bytes

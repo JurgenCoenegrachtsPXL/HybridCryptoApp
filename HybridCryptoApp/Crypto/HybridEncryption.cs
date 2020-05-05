@@ -9,7 +9,7 @@ using HybridCryptoApp.Crypto.Streamable;
 
 namespace HybridCryptoApp.Crypto
 {
-    public class HybridEncryption
+    public static class HybridEncryption
     {
         /// <summary>
         /// Encrypt data

@@ -10,7 +10,7 @@ using Konscious.Security.Cryptography;
 
 namespace HybridCryptoApp.Crypto
 {
-    public class Hashing
+    public static class Hashing
     {
         /// <summary>
         /// Create Sha512 hash of data

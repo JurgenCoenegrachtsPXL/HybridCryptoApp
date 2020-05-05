@@ -6,7 +6,7 @@ namespace HybridCryptoApp.Crypto.Streamable
 {
     public class HashStreamer : IDisposable
     {
-        private HMACSHA512 hasher;
+        private readonly HMACSHA512 hasher;
         private CryptoStream hashStream;
         public byte[] Hash
         {

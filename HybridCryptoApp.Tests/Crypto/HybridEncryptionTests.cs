@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -212,7 +209,7 @@ namespace HybridCryptoApp.Tests.Crypto
             MemoryStream rawStream = new MemoryStream(fileBytes);
 
             MemoryStream encryptedBytes = new MemoryStream();
-            long encryptedPacketLength = await HybridEncryption.EncryptFile(rawStream, encryptedBytes, asymmetricPublicKey);
+            await HybridEncryption.EncryptFile(rawStream, encryptedBytes, asymmetricPublicKey);
 
             encryptedBytes.Position = 0;
 
@@ -235,7 +232,7 @@ namespace HybridCryptoApp.Tests.Crypto
             MemoryStream rawStream = new MemoryStream(fileBytes);
 
             MemoryStream encryptedBytes = new MemoryStream();
-            long encryptedPacketLength = await HybridEncryption.EncryptFile(rawStream, encryptedBytes, asymmetricPublicKey);
+            await HybridEncryption.EncryptFile(rawStream, encryptedBytes, asymmetricPublicKey);
 
             encryptedBytes.Position = 0;
 

@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.Windows.Data;
 using HybridCryptoApp.Networking.Models;
-using HybridCryptoApp.Windows;
 
 namespace HybridCryptoApp.Networking
 {
@@ -19,7 +17,7 @@ namespace HybridCryptoApp.Networking
         public string PublicKey { get; set; }
 
         public ObservableCollection<Message> Messages { get; set; } = new ObservableCollection<Message>();
-        public readonly object LockObject = new object();
+        public object LockObject { get; } = new object();
 
         public string LastMessage { get; set; }
 
@@ -36,9 +34,20 @@ namespace HybridCryptoApp.Networking
         /// <inheritdoc />
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
             return Equals((ContactPerson) obj);
         }
 

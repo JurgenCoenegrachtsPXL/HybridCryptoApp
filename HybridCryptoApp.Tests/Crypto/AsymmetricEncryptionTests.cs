@@ -7,19 +7,19 @@ namespace HybridCryptoApp.Tests.Crypto
     [TestFixture]
     public class AsymmetricEncryptionTests
     {
-        private string testContainerName = "newTestContainer";
+        private static string TestContainerName => "newTestContainer";
         private RSAParameters publicKey;
 
         [SetUp]
         public void SetUp()
         {
-            publicKey = AsymmetricEncryption.CreateNewKeyPair(testContainerName, 4096);
+            publicKey = AsymmetricEncryption.CreateNewKeyPair(TestContainerName, 4096);
         }
 
         [Test]
         public void GenerateKeyPAir_Returns_Public_Key()
         {
-            RSAParameters rsaParameters = AsymmetricEncryption.CreateNewKeyPair(testContainerName, 4096);
+            RSAParameters rsaParameters = AsymmetricEncryption.CreateNewKeyPair(TestContainerName, 4096);
             
             Assert.NotNull(rsaParameters);
         }
@@ -27,7 +27,7 @@ namespace HybridCryptoApp.Tests.Crypto
         [Test]
         public void GenerateKeyPAir_Returns_Valid_Public_Key()
         {
-            RSAParameters rsaParameters = AsymmetricEncryption.CreateNewKeyPair(testContainerName, 4096);
+            RSAParameters rsaParameters = AsymmetricEncryption.CreateNewKeyPair(TestContainerName, 4096);
 
             // public exponent
             Assert.NotNull(rsaParameters.Exponent);
