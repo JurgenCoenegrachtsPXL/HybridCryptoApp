@@ -337,6 +337,9 @@ namespace HybridCryptoApp.Crypto
                 // Something something, absolute bullshit
                 inputStream.Position = inputStream.Seek(-16, SeekOrigin.End);
                 await inputStream.CopyToAsync(decryptStream);
+                
+                // flush it all
+                await outputStream.FlushAsync();
 
                 return true;
             }

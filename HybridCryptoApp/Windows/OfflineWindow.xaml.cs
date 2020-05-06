@@ -348,5 +348,236 @@ namespace HybridCryptoApp.Windows
                 }
             }
         }
+
+        private async void EncryptFileStenographyButton_Click(object sender, RoutedEventArgs e)
+        {
+            ErrorTextBlock.Visibility = Visibility.Hidden;
+
+            FileStream baseFile = null;
+            FileStream saveFile = null;
+            MemoryStream messageData = null;
+            MemoryStream encryptedData = null;
+
+            try
+            {
+                // put original message into a memory stream
+                byte[] messageBytes = Encoding.UTF8.GetBytes(InputMessageBox.Text);
+                messageData = new MemoryStream();
+                messageData.Write(messageBytes, 0, messageBytes.Length);
+                if (messageData.Length < 32) // make sure it's longer than the minimum length
+                {
+                    messageData.Write(new byte[32], 0, 32);
+                }
+                messageData.Position = 0;
+
+                // select file to use as base
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.Title = "Choose a file to put encrypted message";
+
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    baseFile = new FileStream(openFileDialog.FileName, FileMode.Open, FileAccess.Read);
+                } 
+                else
+                {
+                    return;
+                }
+
+                // select file to save
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                saveFileDialog.Title = "Save as";
+                saveFileDialog.DefaultExt = openFileDialog.SafeFileName.Split('.').Last();
+                saveFileDialog.AddExtension = true;
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    saveFile = new FileStream(saveFileDialog.FileName, FileMode.Create, FileAccess.Write);
+                } 
+                else
+                {
+                    return;
+                }
+
+                // encrypt message into memory stream
+                encryptedData = new MemoryStream();
+                await HybridEncryption.EncryptFile(messageData, encryptedData, AsymmetricEncryption.PublicKeyFromXml(PublicRSAKeyReceiver.Text)).ConfigureAwait(false);
+                encryptedData.Position = 0;
+
+                // write length to output
+                byte[] baseFileBuffer = new byte[8];
+
+                byte[] length = BitConverter.GetBytes(encryptedData.Length);
+                for (int i = 0; i < 8; i++)
+                {
+                    await baseFile.ReadAsync(baseFileBuffer, 0, 8); // read 8 bytes of input
+                    HideInBytes(baseFileBuffer, length[i]);
+                    await saveFile.WriteAsync(baseFileBuffer, 0, 8); // write 8 bytes to output    
+                }
+                
+                // hide message in output
+                byte[] encryptedDataBuffer = new byte[1];
+                for (int i = 0; i < encryptedData.Length; i++)
+                {
+                    await encryptedData.ReadAsync(encryptedDataBuffer, 0, 1);
+                    await baseFile.ReadAsync(baseFileBuffer, 0, 8); // read 8 bytes of input
+                    HideInBytes(baseFileBuffer, encryptedDataBuffer[0]);
+                    await saveFile.WriteAsync(baseFileBuffer, 0, 8); // write 8 bytes to output
+                }
+
+                // write rest of file to output
+                byte[] fileBuffer = new byte[1024];
+                while (await baseFile.ReadAsync(fileBuffer, 0, 1024) > 0)
+                {
+                    await saveFile.WriteAsync(fileBuffer, 0, 1024);
+                }
+
+                await saveFile.FlushAsync().ConfigureAwait(false);
+            }
+            catch (IOException exception)
+            {
+                ErrorTextBlock.Text = exception.Message;
+                ErrorTextBlock.Visibility = Visibility.Visible;
+            }
+            catch (CryptoException exception)
+            {
+                ErrorTextBlock.Text = exception.Message;
+                ErrorTextBlock.Visibility = Visibility.Visible;
+            }
+            finally
+            {
+                baseFile?.Close();
+                saveFile?.Close();
+                messageData?.Close();
+                encryptedData?.Close();
+            }
+        }
+
+        private async void DecryptFileStenographyButton_Click(object sender, RoutedEventArgs e)
+        {
+            FileStream stegFile = null;
+            MemoryStream encryptedData = null;
+            MemoryStream messageData = null;
+
+            try
+            {
+                // open file
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.Title = "Choose a file to put decrypted message";
+
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    stegFile = new FileStream(openFileDialog.FileName, FileMode.Open, FileAccess.Read);
+                } 
+                else
+                {
+                    return;
+                }
+
+                // get length
+                byte[] stegBuffer = new byte[64];
+                stegFile.Read(stegBuffer, 0, 64);
+
+                byte[] lengthBuffer = new byte[8];
+                for (int i = 0; i < 8; i++)
+                {
+                    lengthBuffer[i] = GlueByteTogether(stegBuffer.Skip(i * 8).Take(8).ToArray());
+                }
+
+                long length = BitConverter.ToInt64(lengthBuffer, 0);
+                encryptedData = new MemoryStream();
+
+                // read rest of bytes
+                long current = 0;
+                stegBuffer = new byte[8];
+                while (current < length)
+                {
+                    current++;
+                    
+                    // read from input
+                    await stegFile.ReadAsync(stegBuffer, 0, 8);
+
+                    // convert to single byte
+                    byte gluedByte = GlueByteTogether(stegBuffer);
+
+                    // write byte to memorystream
+                    await encryptedData.WriteAsync(new byte[] {gluedByte}, 0, 1);
+                }
+
+                // decrypt data
+                messageData = new MemoryStream();
+                await HybridEncryption.DecryptFile(encryptedData, messageData, AsymmetricEncryption.PublicKeyFromXml(PublicRSAKeyReceiver.Text));
+
+                // show message to user
+                string message = Encoding.UTF8.GetString(messageData.ToArray());
+                MessageBox.Show(message);
+            }
+            catch (IOException exception)
+            {
+                ErrorTextBlock.Text = exception.Message;
+                ErrorTextBlock.Visibility = Visibility.Visible;
+            }
+            catch (CryptoException exception)
+            {
+                ErrorTextBlock.Text = exception.Message;
+                ErrorTextBlock.Visibility = Visibility.Visible;
+            }
+            finally
+            {
+                stegFile?.Close();
+                encryptedData?.Close();
+                messageData?.Close();
+            }
+        }
+
+        public static byte GlueByteTogether(byte[] input)
+        {
+            byte output = 0;
+
+            output |= (byte) ((byte)(input[0] & 0b0000_0001) << 7);
+            output |= (byte) ((byte)(input[1] & 0b0000_0001) << 6);
+            output |= (byte) ((byte)(input[2] & 0b0000_0001) << 5);
+            output |= (byte) ((byte)(input[3] & 0b0000_0001) << 4);
+            output |= (byte) ((byte)(input[4] & 0b0000_0001) << 3);
+            output |= (byte) ((byte)(input[5] & 0b0000_0001) << 2);
+            output |= (byte) ((byte)(input[6] & 0b0000_0001) << 1);
+            output |= (byte) ((byte)(input[7] & 0b0000_0001) << 0);
+
+            /*
+            for (int i = 0; i < 8; i++)
+            {
+                output |= (byte) ((byte) (input[i] & 0b0000_0001) << (7 - i));
+                //output |= (byte)((byte)((byte)(input[i] << i) >> 7) << i); // separate bit, shift it back into position, then add to output
+            }
+            */
+
+            return output;
+        }
+
+        public static void HideInBytes(byte[] buffer, byte byteToHide)
+        {
+            // clear last bit
+            for (int i = 0; i < 8; i++)
+            {
+                buffer[i] &= 0b1111_1110;
+                //buffer[i] |= (byte)((byteToHide & (1 << (7 - i))) >> (7 - i));
+            }
+
+            buffer[0] |= (byte)((byte)(byteToHide & 0b1000_0000) >> 7);
+            buffer[1] |= (byte)((byte)(byteToHide & 0b0100_0000) >> 6);
+            buffer[2] |= (byte)((byte)(byteToHide & 0b0010_0000) >> 5);
+            buffer[3] |= (byte)((byte)(byteToHide & 0b0001_0000) >> 4);
+            buffer[4] |= (byte)((byte)(byteToHide & 0b0000_1000) >> 3);
+            buffer[5] |= (byte)((byte)(byteToHide & 0b0000_0100) >> 2);
+            buffer[6] |= (byte)((byte)(byteToHide & 0b0000_0010) >> 1);
+            buffer[7] |= (byte)((byte)(byteToHide & 0b0000_0001) >> 0);
+
+            /*
+            for (int i = 0; i < 8; i++)
+            {
+                buffer[i] &= 0b1111_1110; // clear last bit
+                buffer[i] |= (byte)((byte)(byteToHide << i) >> 7); // shift byte so only intended bit remains and gets shifted to last position
+            }
+            */
+        }
     }
 }

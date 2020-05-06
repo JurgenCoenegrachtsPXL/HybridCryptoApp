@@ -68,6 +68,11 @@
                         <MenuItem Name="DecryptMessageButton" Header="_Decrypt" Click="DecryptMessageButton_Click" />
                     </MenuItem>
 
+                  <MenuItem Header="File _Stenography">
+                    <MenuItem Name="EncryptFileStenography" Header="_Encrypt" Click="EncryptFileStenographyButton_Click"/>
+                    <MenuItem Name="DecryptFileStenography" Header="_Decrypt" Click="DecryptFileStenographyButton_Click"/>
+                  </MenuItem>
+
                     <MenuItem Header="Create">
                         <MenuItem Header="RSA Key" Name="CreateRSAKey" Click="CreateRSAKey_Click"/>
                     </MenuItem>
