@@ -187,23 +187,5 @@ namespace HybridCryptoApp.Crypto
                 return rsaDeformatter.VerifySignature(expectedResult, signature);
             }
         }
-
-        /// <summary>
-        /// Create CSP parameters to load current asymmetric key
-        /// </summary>
-        /// <returns></returns>
-        private static CspParameters GetCSPParameters()
-        {
-            // container needs to be specified
-            if (containerName == null)
-            {
-                throw new CryptoException("No RSA private key loaded.");
-            }
-
-            return new CspParameters
-            {
-                KeyContainerName = containerName,
-            };
-        }
     }
 }

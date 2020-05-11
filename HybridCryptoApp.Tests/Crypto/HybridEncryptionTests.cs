@@ -15,6 +15,16 @@ namespace HybridCryptoApp.Tests.Crypto
 
         private RSAParameters asymmetricPublicKey;
 
+        private EncryptedPacket ValidMessagePacket
+        {
+            get
+            {
+                string inputString = "This is another test string";
+                byte[] messageBytes = Encoding.UTF8.GetBytes(inputString);
+                return HybridEncryption.Encrypt(DataType.Message, messageBytes, asymmetricPublicKey);
+            }
+        }
+
         [SetUp]
         public void SetUp()
         {
@@ -245,6 +255,76 @@ namespace HybridCryptoApp.Tests.Crypto
             Assert.True(hashOk);
             CollectionAssert.IsNotEmpty(decryptedBytes);
             CollectionAssert.AreEqual(fileBytes, decryptedBytes);
+        }
+
+        [Test]
+        public void Encrypt_Should_Throw_Crypto_Exception_If_RSA_Public_Key_Is_Invalid()
+        {
+            byte[] fileBytes = Random.GetNumbers(2048);
+
+            asymmetricPublicKey.Modulus = new byte[1];
+
+            Assert.That(() => { HybridEncryption.Encrypt(DataType.File, fileBytes, asymmetricPublicKey); }, Throws.InstanceOf(typeof(CryptoException)));
+        }
+
+        [Test]
+        public void Encrypt_Should_Throw_Crypto_Exception_If_Data_Is_Null()
+        {
+            Assert.That(() => { HybridEncryption.Encrypt(DataType.File, null, asymmetricPublicKey); }, Throws.InstanceOf(typeof(CryptoException)));
+        }
+
+        [Test]
+        public void Decrypt_Should_Throw_Crypto_Exception_If_RSA_Public_Key_Is_Invalid()
+        {
+            asymmetricPublicKey.Modulus = new byte[1];
+
+            Assert.That(() => { HybridEncryption.Decrypt(ValidMessagePacket, asymmetricPublicKey); }, Throws.InstanceOf(typeof(CryptoException)));
+        }
+
+        [Test]
+        public void Decrypt_Should_Throw_Crypto_Exception_If_EncryptedAesKey_Was_Changed()
+        {
+            EncryptedPacket packet = ValidMessagePacket;
+            packet.EncryptedSessionKey = new byte[32];
+
+            Assert.That(() => { HybridEncryption.Decrypt(packet, asymmetricPublicKey); }, Throws.InstanceOf(typeof(CryptoException)));
+        }
+
+        [Test]
+        public void Decrypt_Should_Throw_Crypto_Exception_If_IV_Was_Changed()
+        {
+            EncryptedPacket packet = ValidMessagePacket;
+            packet.Iv = new byte[32];
+
+            Assert.That(() => { HybridEncryption.Decrypt(packet, asymmetricPublicKey); }, Throws.InstanceOf(typeof(CryptoException)));
+        }
+
+        [Test]
+        public void Decrypt_Should_Throw_Crypto_Exception_If_Hash_Was_Changed()
+        {
+            EncryptedPacket packet = ValidMessagePacket;
+            packet.Hmac = new byte[64];
+
+            Assert.That(() => { HybridEncryption.Decrypt(packet, asymmetricPublicKey); }, Throws.InstanceOf(typeof(CryptoException)));
+        }
+
+
+        [Test]
+        public void Decrypt_Should_Throw_Crypto_Exception_If_Signature_Was_Changed()
+        {
+            EncryptedPacket packet = ValidMessagePacket;
+            packet.Hmac = new byte[128];
+
+            Assert.That(() => { HybridEncryption.Decrypt(packet, asymmetricPublicKey); }, Throws.InstanceOf(typeof(CryptoException)));
+        }
+
+        [Test]
+        public void Decrypt_Should_Throw_Crypto_Exception_If_Encrypted_Data_Was_Changed()
+        {
+            EncryptedPacket packet = ValidMessagePacket;
+            packet.EncryptedData = new byte[256];
+
+            Assert.That(() => { HybridEncryption.Decrypt(packet, asymmetricPublicKey); }, Throws.InstanceOf(typeof(CryptoException)));
         }
     }
 }

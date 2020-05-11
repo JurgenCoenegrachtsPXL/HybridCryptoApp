@@ -42,9 +42,13 @@ namespace HybridCryptoApp.Crypto
             {
                 encryptedData = SymmetricEncryption.Encrypt(data, sessionKey, iv);
             }
+            catch (NullReferenceException)
+            {
+                throw new CryptoException("Data was null");
+            }
             catch (CryptographicException e)
             {
-                throw new CryptoException("Error while encryting data", e);
+                throw new CryptoException("Error while encrypting data", e);
             }
 
 
@@ -177,25 +181,32 @@ namespace HybridCryptoApp.Crypto
                 Iv = iv
             };
 
-            // create streamers
-            using (HashStreamer hashStreamer = new HashStreamer(aesKey))
-            using (SymmetricStreamer symmetricStreamer = new SymmetricStreamer(aesKey, iv))
+            try
             {
-                // create streams
-                var hmacStream = hashStreamer.HmacShaStream(outputStream, aesKey, CryptoStreamMode.Write);
-                var encryptedStream = symmetricStreamer.EncryptStream(hmacStream, CryptoStreamMode.Write);
+                // create streamers
+                using (HashStreamer hashStreamer = new HashStreamer(aesKey))
+                using (SymmetricStreamer symmetricStreamer = new SymmetricStreamer(aesKey, iv))
+                {
+                    // create streams
+                    var hmacStream = hashStreamer.HmacShaStream(outputStream, aesKey, CryptoStreamMode.Write);
+                    var encryptedStream = symmetricStreamer.EncryptStream(hmacStream, CryptoStreamMode.Write);
 
-                // read all data
-                inputStream.CopyTo(encryptedStream);
+                    // read all data
+                    inputStream.CopyTo(encryptedStream);
 
-                // get hash
-                encryptedPacket.Hmac = hashStreamer.Hash;
+                    // get hash
+                    encryptedPacket.Hmac = hashStreamer.Hash;
 
-                // create signature
-                encryptedPacket.Signature = AsymmetricEncryption.Sign(encryptedPacket.Hmac);
+                    // create signature
+                    encryptedPacket.Signature = AsymmetricEncryption.Sign(encryptedPacket.Hmac);
 
-                // close file streams
-                inputStream.Close();
+                    // close file streams
+                    inputStream.Close();
+                }
+            }
+            catch (CryptographicException e)
+            {
+                throw new CryptoException("Error while encrypting stream", e);
             }
 
             // read encrypted data from memory stream
@@ -210,6 +221,7 @@ namespace HybridCryptoApp.Crypto
         /// <param name="inputStream">Stream to read data from</param>
         /// <param name="outputStream">Stream to write encrypted packet to</param>
         /// <param name="publicKey"></param>
+        /// <returns>Length of output stream</returns>
         public static async Task<long> EncryptFile(Stream inputStream, Stream outputStream, RSAParameters publicKey)
         {
             byte[] aesKey = Random.GetNumbers(32);
@@ -233,8 +245,7 @@ namespace HybridCryptoApp.Crypto
             await outputStream.WriteAsync(new byte[signatureLength], 0, signatureLength); // reserve space for signature
             await outputStream.FlushAsync();
 
-            // create streams
-            //using (HashStreamer hashStreamer = new HashStreamer(aesKey))
+            try
             {
                 using (HashStreamer hashStreamer = new HashStreamer(aesKey))
                 using (SymmetricStreamer symmetricStreamer = new SymmetricStreamer(aesKey, iv))
@@ -251,15 +262,19 @@ namespace HybridCryptoApp.Crypto
                     await outputStream.WriteAsync(firstData.ToArray(), 0, firstData.Count);
                     byte[] hash = hashStreamer.Hash;
                     await outputStream.WriteAsync(hash, 0, 64);
-                    
+
                     // write signature in front of file
                     await outputStream.WriteAsync(AsymmetricEncryption.Sign(hash), 0, signatureLength);
 
                     // flush it all the way
                     await outputStream.FlushAsync();
-                    
+
                     return outputStream.Length;
                 }
+            }
+            catch (CryptographicException e)
+            {
+                throw new CryptoException("Error while encrypting file", e);
             }
         }
 
@@ -310,39 +325,46 @@ namespace HybridCryptoApp.Crypto
                 throw new CryptoException("Signature check failed, file could have been sent by somebody else!");
             }
 
-            // create streamers
-            using (HashStreamer hashStreamer = new HashStreamer(aesKey))
-            using (SymmetricStreamer symmetricStreamer = new SymmetricStreamer(aesKey, iv))
+            try
             {
-                long currentPos = inputStream.Position;
-
-                // create streams
-                var hmacStream = hashStreamer.HmacShaStream(new MemoryStream(), aesKey, CryptoStreamMode.Write);
-                var decryptStream = symmetricStreamer.DecryptStream(outputStream, CryptoStreamMode.Write);
-
-                // create hash
-                await inputStream.CopyToAsync(hmacStream);
-                inputStream.Position = currentPos;
-                await inputStream.FlushAsync();
-
-                // skip decrypting if the hash isn't correct
-                if (!Hashing.CompareHashes(hashStreamer.Hash, hmac))
+                // create streamers
+                using (HashStreamer hashStreamer = new HashStreamer(aesKey))
+                using (SymmetricStreamer symmetricStreamer = new SymmetricStreamer(aesKey, iv))
                 {
-                    return false;
+                    long currentPos = inputStream.Position;
+
+                    // create streams
+                    var hmacStream = hashStreamer.HmacShaStream(new MemoryStream(), aesKey, CryptoStreamMode.Write);
+                    var decryptStream = symmetricStreamer.DecryptStream(outputStream, CryptoStreamMode.Write);
+
+                    // create hash
+                    await inputStream.CopyToAsync(hmacStream);
+                    inputStream.Position = currentPos;
+                    await inputStream.FlushAsync();
+
+                    // skip decrypting if the hash isn't correct
+                    if (!Hashing.CompareHashes(hashStreamer.Hash, hmac))
+                    {
+                        return false;
+                    }
+
+                    // decrypt the actual data
+                    await inputStream.CopyToAsync(decryptStream);
+                    await inputStream.FlushAsync();
+
+                    // Something something, absolute bullshit
+                    inputStream.Position = inputStream.Seek(-16, SeekOrigin.End);
+                    await inputStream.CopyToAsync(decryptStream);
+
+                    // flush it all
+                    await outputStream.FlushAsync();
+
+                    return true;
                 }
-
-                // decrypt the actual data
-                await inputStream.CopyToAsync(decryptStream);
-                await inputStream.FlushAsync();
-
-                // Something something, absolute bullshit
-                inputStream.Position = inputStream.Seek(-16, SeekOrigin.End);
-                await inputStream.CopyToAsync(decryptStream);
-                
-                // flush it all
-                await outputStream.FlushAsync();
-
-                return true;
+            }
+            catch (CryptographicException e)
+            {
+                throw new CryptoException("Error while decrypting stream", e);
             }
         }
     }

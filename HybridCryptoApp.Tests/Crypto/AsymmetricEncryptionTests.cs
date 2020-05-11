@@ -84,5 +84,16 @@ namespace HybridCryptoApp.Tests.Crypto
             Assert.NotNull(decryptedData);
             Assert.AreEqual(rawData, decryptedData);
         }
+
+        [Test]
+        public void SelectKeyPair_Should_Change_Public_Key()
+        {
+            RSAParameters beforeParams = AsymmetricEncryption.PublicKey;
+
+            AsymmetricEncryption.SelectKeyPair("otherPair", 512);
+
+            RSAParameters afterParams = AsymmetricEncryption.PublicKey;
+            Assert.That(beforeParams, Is.Not.EqualTo(afterParams));
+        }
     }
 }

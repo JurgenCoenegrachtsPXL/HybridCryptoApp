@@ -37,6 +37,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>HybridCryptoApp.App</StartupObject>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Dnp, Version=2.0.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Test.2.0.1.1\lib\Dnp.dll</HintPath>
