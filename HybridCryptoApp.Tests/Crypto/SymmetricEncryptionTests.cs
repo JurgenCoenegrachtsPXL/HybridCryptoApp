@@ -1,6 +1,4 @@
-﻿using System.IO;
-using System.Security.Cryptography;
-using HybridCryptoApp.Crypto;
+﻿using HybridCryptoApp.Crypto;
 using NUnit.Framework;
 
 namespace HybridCryptoApp.Tests.Crypto

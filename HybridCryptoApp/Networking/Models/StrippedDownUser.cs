@@ -1,7 +1,4 @@
-﻿using System;
-using HybridCryptoApp.Crypto;
-
-namespace HybridCryptoApp.Networking.Models
+﻿namespace HybridCryptoApp.Networking.Models
 {
     public class StrippedDownUser
     {

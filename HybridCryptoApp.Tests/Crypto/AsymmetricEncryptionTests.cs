@@ -42,12 +42,6 @@ namespace HybridCryptoApp.Tests.Crypto
         }
 
         [Test]
-        public void DisposeKey_RemovesKey()
-        {
-            Assert.Fail("Not implemented");
-        }
-
-        [Test]
         public void Can_Give_Public_Key_As_XML_String()
         {
             string xml = AsymmetricEncryption.PublicKeyAsXml();

@@ -1,0 +1,10 @@
+o
+fc:\Users\Jurgen\source\repos\HybridCryptoApp\HybridCryptoApp.Tests\Crypto\AsymmetricEncryptionTests.csutf-8k
+bc:\Users\Jurgen\source\repos\HybridCryptoApp\HybridCryptoApp.Tests\Crypto\HybridEncryptionTests.csutf-8w
+nc:\Users\Jurgen\source\repos\HybridCryptoApp\HybridCryptoApp.Tests\Crypto\Streamable\SymmetricStreamerTests.csutf-8n
+ec:\Users\Jurgen\source\repos\HybridCryptoApp\HybridCryptoApp.Tests\Crypto\SymmetricEncryptionTests.csutf-8b
+Yc:\Users\Jurgen\source\repos\HybridCryptoApp\HybridCryptoApp.Tests\Crypto\HashingTests.csutf-8a
+Xc:\Users\Jurgen\source\repos\HybridCryptoApp\HybridCryptoApp.Tests\OfflineWindowTests.csutf-8f
+]c:\Users\Jurgen\source\repos\HybridCryptoApp\HybridCryptoApp.Tests\Properties\AssemblyInfo.csutf-8g
+^c:\Users\Jurgen\source\repos\HybridCryptoApp\HybridCryptoApp.Tests\Crypto\RandomNumberTests.csutf-8`
+UC:\Users\Jurgen\AppData\Local\Temp\.NETFramework,Version=v4.7.2.AssemblyAttributes.csutf-8
