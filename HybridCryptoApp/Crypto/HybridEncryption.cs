@@ -271,8 +271,11 @@ namespace HybridCryptoApp.Crypto
         /// <param name="publicKey">Public key of sender</param>
         public static async Task<bool> DecryptFile(Stream inputStream, Stream outputStream, RSAParameters publicKey)
         {
+            // roll back stream to start
             inputStream.Position = 0;
-            DataType dataType = (DataType)inputStream.ReadByte();
+
+            // read data type
+            inputStream.ReadByte();
 
             // read and decrypt aes key
             byte[] encryptedAesKeyLengthBuffer = new byte[2];

@@ -10,18 +10,16 @@ namespace HybridCryptoApp.Windows
     {
         public static AesKeyLength AesKeyLength { get; private set; } = AesKeyLength.Normal;
         public static RsaKeyLength RsaKeyLength { get; private set; } = RsaKeyLength.Normal;
-        public static bool UseDifferentRsaKeys { get; private set; } = false;
+        public static bool UseDifferentRsaKeys { get; private set; }
 
         public SettingsWindow()
         {
             InitializeComponent();
             AesComboBox.ItemsSource = Enum.GetValues(typeof(AesKeyLength));
             AesComboBox.SelectedItem = AesKeyLength;
-            //AesComboBox.SelectedIndex = Enum.GetNames(typeof(AesKeyLength)).ToList().IndexOf(Enum.GetName(typeof(AesKeyLength), AesKeyLength));
 
             RsaComboBox.ItemsSource = Enum.GetValues(typeof(RsaKeyLength));
             RsaComboBox.SelectedItem = RsaKeyLength;
-            //RsaComboBox.SelectedIndex = Enum.GetNames(typeof(RsaKeyLength)).ToList().IndexOf(Enum.GetName(typeof(RsaKeyLength), RsaKeyLength));
         }
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)

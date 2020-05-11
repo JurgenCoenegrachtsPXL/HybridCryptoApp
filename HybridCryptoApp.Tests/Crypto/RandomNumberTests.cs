@@ -1,6 +1,4 @@
-﻿//using System;
-
-using HybridCryptoApp.Crypto;
+﻿using HybridCryptoApp.Crypto;
 using NUnit.Framework;
 
 namespace HybridCryptoApp.Tests.Crypto

@@ -14,8 +14,6 @@ namespace HybridCryptoApp.Windows
     /// </summary>
     public partial class OfflineWindow : Window
     {
-        private const string FileFormat = "";
-
         public OfflineWindow()
         {
             InitializeComponent();
@@ -142,7 +140,7 @@ namespace HybridCryptoApp.Windows
                     else
                     {
                         StatusImage.Visibility = Visibility.Visible;
-                        StatusImage.Source = new BitmapImage(new Uri(@"/Images/redx.png", UriKind.Relative)); ;
+                        StatusImage.Source = new BitmapImage(new Uri(@"/Images/redx.png", UriKind.Relative));
                     }
                 }
                 catch (IOException exception)
@@ -169,13 +167,12 @@ namespace HybridCryptoApp.Windows
         }
 
         /// <summary>
-        /// 
+        /// Load private key from container
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="routedEventArgs"></param>
         private void LoadPrivateKey(object sender, RoutedEventArgs routedEventArgs)
         {
-            //AsymmetricEncryption.CreateNewKeyPair(PrivateRSAContainerName.Name, 4096);
             AsymmetricEncryption.SelectKeyPair(PrivateRSAContainerName.Text.Trim(), 4096);
         }
 
@@ -533,14 +530,6 @@ namespace HybridCryptoApp.Windows
             output |= (byte) ((byte)(input[6] & 0b0000_0001) << 1);
             output |= (byte) ((byte)(input[7] & 0b0000_0001) << 0);
 
-            /*
-            for (int i = 0; i < 8; i++)
-            {
-                output |= (byte) ((byte) (input[i] & 0b0000_0001) << (7 - i));
-                //output |= (byte)((byte)((byte)(input[i] << i) >> 7) << i); // separate bit, shift it back into position, then add to output
-            }
-            */
-
             return output;
         }
 
@@ -550,7 +539,6 @@ namespace HybridCryptoApp.Windows
             for (int i = 0; i < 8; i++)
             {
                 buffer[i] &= 0b1111_1110;
-                //buffer[i] |= (byte)((byteToHide & (1 << (7 - i))) >> (7 - i));
             }
 
             buffer[0] |= (byte)((byte)(byteToHide & 0b1000_0000) >> 7);
@@ -561,14 +549,6 @@ namespace HybridCryptoApp.Windows
             buffer[5] |= (byte)((byte)(byteToHide & 0b0000_0100) >> 2);
             buffer[6] |= (byte)((byte)(byteToHide & 0b0000_0010) >> 1);
             buffer[7] |= (byte)((byte)(byteToHide & 0b0000_0001) >> 0);
-
-            /*
-            for (int i = 0; i < 8; i++)
-            {
-                buffer[i] &= 0b1111_1110; // clear last bit
-                buffer[i] |= (byte)((byte)(byteToHide << i) >> 7); // shift byte so only intended bit remains and gets shifted to last position
-            }
-            */
         }
     }
 }

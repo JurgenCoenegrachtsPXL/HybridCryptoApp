@@ -4,7 +4,7 @@ namespace HybridCryptoApp.Crypto
 {
     public static class AsymmetricEncryption
     {
-        private static string containerName = null;
+        private static string containerName;
         private static int keyLength = 4096;
 
         /// <summary>
@@ -53,7 +53,7 @@ namespace HybridCryptoApp.Crypto
             containerName = name;
             keyLength = length;
 
-            CspParameters cspParameters = new CspParameters() {KeyContainerName = name};
+            CspParameters cspParameters = new CspParameters {KeyContainerName = name};
 
             var rsa = new RSACryptoServiceProvider(keyLength, cspParameters);
             rsa.PersistKeyInCsp = true;
@@ -101,12 +101,11 @@ namespace HybridCryptoApp.Crypto
         /// <returns>Plaintext data</returns>
         public static byte[] Decrypt(byte[] data)
         {
-            CspParameters cspParameters = new CspParameters() { KeyContainerName = containerName };
+            CspParameters cspParameters = new CspParameters { KeyContainerName = containerName };
 
             byte[] decryptedBytes;
             using (var rsa = new RSACryptoServiceProvider(keyLength, cspParameters))
             {
-                //RSAParameters rsaparams = rsa.ExportParameters(true);
                 decryptedBytes = rsa.Decrypt(data, RSAEncryptionPadding.Pkcs1);
             }
 
@@ -119,10 +118,7 @@ namespace HybridCryptoApp.Crypto
         /// <returns> XML string representation of public key</returns>
         public static string PublicKeyAsXml()
         {
-            //CspParameters cspParameters = new CspParameters(1);
             CspParameters cspParameters = new CspParameters {KeyContainerName = containerName};
-            //cspParameters.Flags = CspProviderFlags.UseMachineKeyStore;
-            //cspParameters.ProviderName = "Microsoft Strong Cryptographic Provider";
 
             using (var rsa = new RSACryptoServiceProvider(keyLength, cspParameters))
             {
@@ -155,7 +151,7 @@ namespace HybridCryptoApp.Crypto
         /// <returns>Signature</returns>
         public static byte[] Sign(byte[] hash)
         {
-            CspParameters cspParameters = new CspParameters(){KeyContainerName = containerName};
+            CspParameters cspParameters = new CspParameters {KeyContainerName = containerName};
             byte[] signBytes;
 
             using (var rsa = new RSACryptoServiceProvider(keyLength, cspParameters))
@@ -204,7 +200,7 @@ namespace HybridCryptoApp.Crypto
                 throw new CryptoException("No RSA private key loaded.");
             }
 
-            return new CspParameters()
+            return new CspParameters
             {
                 KeyContainerName = containerName,
             };

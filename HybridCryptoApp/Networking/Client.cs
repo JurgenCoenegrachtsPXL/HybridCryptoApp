@@ -38,7 +38,7 @@ namespace HybridCryptoApp.Networking
         private const string RegistrationPath = "/api/Authentication/register";
         private const string LoginPath = "/api/Authentication/token";
 
-        private static readonly HttpClient HttpClient = new HttpClient()
+        private static readonly HttpClient HttpClient = new HttpClient
         {
             BaseAddress = new Uri(BaseAddress)
         };
@@ -74,7 +74,7 @@ namespace HybridCryptoApp.Networking
         /// <param name="password"></param>
         public static async Task Login(string email, string password)
         {
-            HttpContent messageContent = Stringify(new LoginModel()
+            HttpContent messageContent = Stringify(new LoginModel
             {
                 Email = email,
                 Password = password
@@ -108,7 +108,7 @@ namespace HybridCryptoApp.Networking
         /// <returns></returns>
         public static async Task Register(string email, string password, string firstName, string lastName, string publicKey)
         {
-            HttpContent messageContent = Stringify(new RegistrationModel()
+            HttpContent messageContent = Stringify(new RegistrationModel
             {
                 Email = email,
                 Password = password,
@@ -242,7 +242,7 @@ namespace HybridCryptoApp.Networking
         /// <returns></returns>
         public static async Task AddContactById(int id)
         {
-            HttpContent content = Stringify(new UserContactModel()
+            HttpContent content = Stringify(new UserContactModel
             {
                 ContactId = id
             });
@@ -266,7 +266,7 @@ namespace HybridCryptoApp.Networking
 
         public static async Task AddContactByEmail(string email)
         {
-            HttpContent content = Stringify(new UserContactModel()
+            HttpContent content = Stringify(new UserContactModel
             {
                 ContactEmail = email
             });
@@ -295,7 +295,7 @@ namespace HybridCryptoApp.Networking
         /// <returns></returns>
         public static async Task RemoveContact(int id)
         {
-            HttpContent content = Stringify(new UserContactModel()
+            HttpContent content = Stringify(new UserContactModel
             {
                 ContactId = id
             });

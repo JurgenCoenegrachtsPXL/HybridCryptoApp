@@ -45,13 +45,6 @@ namespace HybridCryptoApp.Windows
             BindingOperations.EnableCollectionSynchronization(contactList, lockObject);
 
             // load all contacts and messages
-            //new Action(async () => { await RetrieveAll(); })();
-            /*
-             Task.Run(async () =>
-            {
-                await RetrieveAll();
-            }).Wait();
-            */
             RetrieveAll().ConfigureAwait(false);
 
             DispatcherTimer dispatcherTimer = new DispatcherTimer();
@@ -203,7 +196,7 @@ namespace HybridCryptoApp.Windows
                     await Client.SendNewMessage(packetForSender, contact.Id, false);
 
                     // add to chat
-                    contact.Messages.Add(new Message()
+                    contact.Messages.Add(new Message
                     {
                         SenderName = Client.UserName,
                         SendTime = DateTime.Now,
@@ -365,8 +358,6 @@ namespace HybridCryptoApp.Windows
                         try
                         {
                             packetForReceiver = HybridEncryption.EncryptFile(fileStream, AsymmetricEncryption.PublicKeyFromXml(contact.PublicKey));
-                            //packetForReceiver = HybridEncryption.Encrypt(fileStream, AsymmetricEncryption.PublicKeyFromXml(contact.PublicKey));
-                            //packetForSender = HybridEncryption.Encrypt(DataType.File, Encoding.UTF8.GetBytes(text), AsymmetricEncryption.PublicKey);
                         }
                         catch (CryptoException exception)
                         {
@@ -422,7 +413,7 @@ namespace HybridCryptoApp.Windows
                                     // add new message to chat
                                     lock (sender.LockObject)
                                     {
-                                        sender.Messages.Add(new Message()
+                                        sender.Messages.Add(new Message
                                         {
                                             SenderName = sender.UserName,
                                             SendTime = packet.SendDateTime,
@@ -445,7 +436,7 @@ namespace HybridCryptoApp.Windows
                             {
                                 lock (sender.LockObject)
                                 {
-                                    sender.Messages.Add(new Message()
+                                    sender.Messages.Add(new Message
                                     {
                                         SenderName = sender.UserName,
                                         SendTime = packet.SendDateTime,
@@ -499,7 +490,7 @@ namespace HybridCryptoApp.Windows
 
                                 lock (receiver.LockObject)
                                 {
-                                    receiver.Messages.Add(new Message()
+                                    receiver.Messages.Add(new Message
                                     {
                                         SenderName = Client.UserName,
                                         SendTime = packet.SendDateTime,
@@ -521,7 +512,7 @@ namespace HybridCryptoApp.Windows
                         {
                             lock (receiver.LockObject)
                             {
-                                receiver.Messages.Add(new Message()
+                                receiver.Messages.Add(new Message
                                 {
                                     SenderName = receiver.UserName,
                                     SendTime = packet.SendDateTime,

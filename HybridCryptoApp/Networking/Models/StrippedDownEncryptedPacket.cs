@@ -58,7 +58,7 @@ namespace HybridCryptoApp.Networking.Models
         /// <summary>
         /// Convert StrippedDownEncryptedPacket into an EncryptedPacket
         /// </summary>
-        public EncryptedPacket EncryptedPacket => new EncryptedPacket()
+        public EncryptedPacket EncryptedPacket => new EncryptedPacket
         {
             DataType = DataType,
             EncryptedData = EncryptedData,
