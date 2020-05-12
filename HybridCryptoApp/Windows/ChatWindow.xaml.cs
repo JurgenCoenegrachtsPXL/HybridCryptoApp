@@ -352,7 +352,7 @@ namespace HybridCryptoApp.Windows
                     fileStream = new FileStream(openFileDialog.FileName, FileMode.Open, FileAccess.Read);
 
                     // encrypt file for receiver
-                    EncryptedPacket packetForReceiver = null; //, packetForSender = null;
+                    EncryptedPacket packetForReceiver = null;
                     await Task.Run(() =>
                     {
                         try

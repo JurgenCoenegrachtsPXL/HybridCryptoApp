@@ -168,7 +168,6 @@ namespace HybridCryptoApp.Crypto
         /// <returns>EncryptedPacket with all info for receiver to decrypt</returns>
         public static EncryptedPacket EncryptFile(Stream inputStream, RSAParameters publicKey)
         {
-            //FileStream inputStream = new FileStream(inputFile, FileMode.Open, FileAccess.Read);
             MemoryStream outputStream = new MemoryStream();
 
             byte[] aesKey = Random.GetNumbers(32);
