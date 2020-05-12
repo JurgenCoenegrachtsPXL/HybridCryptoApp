@@ -4,14 +4,14 @@
   <ProjectLanguage>C#</ProjectLanguage>
   <ProjectType>Test</ProjectType>
   <ProjectGuid>239b012e-66d5-43df-92a4-c4d9693bac43</ProjectGuid>
-  <FullPath>c:\Users\Jurgen\source\repos\HybridCryptoApp\HybridCryptoApp.Tests\HybridCryptoApp.Tests.csproj</FullPath>
+  <FullPath>C:\Users\Jurgen\source\repos\HybridCryptoApp\HybridCryptoApp.Tests\HybridCryptoApp.Tests.csproj</FullPath>
   <IsExcluded>false</IsExcluded>
   <AnalysisResults>
-    <AnalysisResult Id="FilesToAnalyze" Location="c:\Users\Jurgen\source\repos\HybridCryptoApp\.sonarqube\out\2\FilesToAnalyze.txt" />
+    <AnalysisResult Id="FilesToAnalyze" Location="C:\Users\Jurgen\source\repos\HybridCryptoApp\.sonarqube\out\2\FilesToAnalyze.txt" />
   </AnalysisResults>
   <AnalysisSettings>
-    <Property Name="sonar.cs.roslyn.reportFilePath">c:\Users\Jurgen\source\repos\HybridCryptoApp\HybridCryptoApp.Tests\bin\Debug\HybridCryptoApp.Tests.dll.RoslynCA.json|c:\Users\Jurgen\source\repos\HybridCryptoApp\HybridCryptoApp.Tests\bin\Debug\HybridCryptoApp.Tests.dll.RoslynCA.json</Property>
-    <Property Name="sonar.cs.analyzer.projectOutPath">c:\Users\Jurgen\source\repos\HybridCryptoApp\.sonarqube\out\2</Property>
+    <Property Name="sonar.cs.roslyn.reportFilePath">C:\Users\Jurgen\source\repos\HybridCryptoApp\HybridCryptoApp.Tests\bin\Debug\HybridCryptoApp.Tests.dll.RoslynCA.json|C:\Users\Jurgen\source\repos\HybridCryptoApp\HybridCryptoApp.Tests\bin\Debug\HybridCryptoApp.Tests.dll.RoslynCA.json</Property>
+    <Property Name="sonar.cs.analyzer.projectOutPath">C:\Users\Jurgen\source\repos\HybridCryptoApp\.sonarqube\out\2</Property>
   </AnalysisSettings>
   <Configuration>Debug</Configuration>
   <Platform>AnyCPU</Platform>
